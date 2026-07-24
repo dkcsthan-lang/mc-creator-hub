@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export function TopBar() {
   const { user } = useSession();
-  const { isAdmin, isDesigner } = useRoles(user);
+  const { isAdmin, isDesigner } = useRoles();
   const navigate = useNavigate();
 
   async function signOut() {

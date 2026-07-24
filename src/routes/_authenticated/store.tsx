@@ -33,7 +33,7 @@ function Store() {
 
   async function buy(key: string, label: string, price: number) {
     if (!user) return;
-    const { error } = await supabase.from("mock_purchases").insert({ user_id: user.id, item_key: key, item_label: label, price });
+    const { error } = await supabase.from("mock_purchases").insert({ user_id: user.id, item_key: key, item_type: label, price });
     if (error) return toast.error(error.message);
     toast.success(`Purchased ${label} (mock)`);
     setPurchases((p) => [...p, { item_key: key }]);

@@ -148,12 +148,12 @@ function UsersPanel() {
   useEffect(() => { refresh(); }, [q]);
 
   async function ban(id: string) {
-    await supabase.from("profiles").update({ banned: true }).eq("id", id);
+    await supabase.from("profiles").update({ is_banned: true }).eq("id", id);
     toast.success("Banned");
     refresh();
   }
   async function unban(id: string) {
-    await supabase.from("profiles").update({ banned: false }).eq("id", id);
+    await supabase.from("profiles").update({ is_banned: false }).eq("id", id);
     refresh();
   }
 
