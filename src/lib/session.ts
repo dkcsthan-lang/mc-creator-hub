@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Session, User } from "@supabase/supabase-js";
+import type { Session } from "@supabase/supabase-js";
 
 export type Role = "customer" | "designer" | "admin";
 
@@ -26,55 +26,41 @@ export function useSession() {
       setSession(data.session);
       setLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
 
   return { session, user: session?.user ?? null, loading };
 }
 
-export function useRoles(user: User | null) {
+export function useRoles() {
+  const { user } = useSession();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!user) {
-      setRoles([]);
-      setLoading(false);
-      return;
-    }
+    if (!user) { setRoles([]); setLoading(false); return; }
     setLoading(true);
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .then(({ data }) => {
-        setRoles(((data ?? []) as { role: Role }[]).map((r) => r.role));
-        setLoading(false);
-      });
+    supabase.from("user_roles").select("role").eq("user_id", user.id).then(({ data }) => {
+      setRoles(((data ?? []) as { role: Role }[]).map((r) => r.role));
+      setLoading(false);
+    });
   }, [user?.id]);
   return { roles, loading, isAdmin: roles.includes("admin"), isDesigner: roles.includes("designer") };
 }
 
-export function useProfile(user: User | null) {
+export function useProfile() {
+  const { user } = useSession();
   const [profile, setProfile] = useState<MctechProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    if (!user) {
-      setProfile(null);
+
+  const load = useCallback(() => {
+    if (!user) { setProfile(null); setLoading(false); return; }
+    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle().then(({ data }) => {
+      setProfile((data as MctechProfile | null) ?? null);
       setLoading(false);
-      return;
-    }
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setProfile((data as MctechProfile | null) ?? null);
-        setLoading(false);
-      });
+    });
   }, [user?.id]);
-  return { profile, loading, setProfile };
+
+  useEffect(() => { load(); }, [load]);
+  return { profile, loading, setProfile, refresh: load };
 }
