@@ -45,8 +45,8 @@ function Applications() {
   useEffect(() => { refresh(); }, []);
 
   async function decide(app: any, approve: boolean) {
-    const status = approve ? "approved" : "rejected";
-    await supabase.from("designer_applications").update({ status, reviewed_at: new Date().toISOString() }).eq("id", app.id);
+    const status: "approved" | "rejected" = approve ? "approved" : "rejected";
+    await supabase.from("designer_applications").update({ status: status as any, reviewed_at: new Date().toISOString() }).eq("id", app.id);
     if (approve) {
       await supabase.from("user_roles").insert({ user_id: app.user_id, role: "designer" });
       await supabase.from("notifications").insert({ user_id: app.user_id, type: "app_approved", title: "You're a designer!", body: "Your application was approved. Start uploading samples.", link: "/dashboard" });
