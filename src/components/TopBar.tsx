@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, LayoutDashboard, LogIn, LogOut, MessageSquare, Package, Settings, ShieldCheck, ShoppingBag, Sparkles, Store, User as UserIcon } from "lucide-react";
+import { Bell, LayoutDashboard, LogIn, LogOut, MessageSquare, Package, ShieldCheck, ShoppingBag, Sparkles, Store, User as UserIcon } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -37,6 +37,7 @@ export function TopBar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild><Link to="/notifications"><Bell className="mr-2 h-4 w-4" />Notifications</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/messages"><MessageSquare className="mr-2 h-4 w-4" />Messages</Link></DropdownMenuItem>
                 {role === "customer" && (
                   <DropdownMenuItem asChild><Link to="/orders"><Package className="mr-2 h-4 w-4" />Orders</Link></DropdownMenuItem>
                 )}
@@ -47,11 +48,14 @@ export function TopBar() {
                   </>
                 )}
                 {role === "admin" && (
-                  <DropdownMenuItem asChild><Link to="/admin"><ShieldCheck className="mr-2 h-4 w-4" />Admin panel</Link></DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild><Link to="/admin"><ShieldCheck className="mr-2 h-4 w-4" />Admin panel</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link to="/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Dashboard</Link></DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuItem asChild><Link to="/store"><Store className="mr-2 h-4 w-4" />Store</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/profile"><UserIcon className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
-                {role !== "designer" && (
+                {role !== "designer" && role !== "admin" && (
                   <DropdownMenuItem asChild><Link to="/apply"><Sparkles className="mr-2 h-4 w-4" />Apply as designer</Link></DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
