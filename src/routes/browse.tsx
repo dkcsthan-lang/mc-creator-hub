@@ -98,7 +98,7 @@ function Browse() {
           {filtered.map((s) => (
             <Link key={s.id} to="/samples/$id" params={{ id: s.id }}>
               <Card className="overflow-hidden neon-border transition hover:neon-glow">
-                <img src={s.image_url} alt={s.title} className="h-40 w-full object-cover" loading="lazy" />
+                <SampleImage src={s.image_url} alt={s.title} className="h-40 w-full object-cover" loading="lazy" />
                 <div className="p-3">
                   <p className="line-clamp-1 text-sm font-medium">{s.title}</p>
                   <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SampleImage } from "@/components/SampleImage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -95,7 +96,7 @@ function Home() {
               <Link key={s.id} to="/samples/$id" params={{ id: s.id }} className="group">
                 <Card className="overflow-hidden border-border/50 bg-card/60 backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_0_40px_-10px_color-mix(in_oklab,var(--neon-purple)_50%,transparent)]">
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img src={s.image_url} alt={s.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                    <SampleImage src={s.image_url} alt={s.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
                   </div>
                   <div className="p-3">
                     <p className="line-clamp-1 text-sm font-medium">{s.title}</p>
