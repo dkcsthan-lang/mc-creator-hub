@@ -1,3 +1,4 @@
+import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +62,7 @@ function CategoryPage() {
           {samples.map((s) => (
             <Link key={s.id} to="/samples/$id" params={{ id: s.id }}>
               <Card className="overflow-hidden neon-border transition hover:neon-glow">
-                <img src={s.image_url} alt={s.title} className="h-40 w-full object-cover" loading="lazy" />
+                <SampleImage src={s.image_url} alt={s.title} className="h-40 w-full object-cover" loading="lazy" />
                 <div className="p-3">
                   <p className="line-clamp-1 text-sm font-medium">{s.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">₹{s.price}</p>

@@ -1,3 +1,4 @@
+import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,7 +97,7 @@ function SamplesPanel() {
     <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {rows.map((s) => (
         <Card key={s.id} className="overflow-hidden glass">
-          <img src={s.image_url} alt={s.title} className="h-40 w-full object-cover" />
+          <SampleImage src={s.image_url} alt={s.title} className="h-40 w-full object-cover" />
           <div className="p-3">
             <p className="font-medium">{s.title}</p>
             <p className="text-xs text-muted-foreground">₹{s.price} • {s.category}</p>

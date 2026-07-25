@@ -1,3 +1,4 @@
+import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,7 +78,7 @@ function SampleDetail() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Card className="overflow-hidden neon-border">
-        <img src={sample.image_url} alt={sample.title} className="max-h-[520px] w-full object-cover" />
+        <SampleImage src={sample.image_url} alt={sample.title} className="max-h-[520px] w-full object-cover" />
         <div className="p-5">
           <div className="mb-4 flex items-center gap-3">
             <Avatar><AvatarImage src={designer?.avatar_url ?? undefined} /><AvatarFallback><User className="h-4 w-4" /></AvatarFallback></Avatar>

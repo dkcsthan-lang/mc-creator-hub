@@ -1,3 +1,4 @@
+import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,7 +107,7 @@ function Dashboard() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {samples.map((s) => (
             <Card key={s.id} className="overflow-hidden neon-border">
-              <img src={s.image_url} alt={s.title} className="h-40 w-full object-cover" />
+              <SampleImage src={s.image_url} alt={s.title} className="h-40 w-full object-cover" />
               <div className="p-3">
                 <div className="flex items-center justify-between">
                   <p className="line-clamp-1 text-sm font-medium">{s.title}</p>
