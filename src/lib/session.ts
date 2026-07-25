@@ -15,6 +15,9 @@ export type MctechProfile = {
   membership: string;
   designer_tag: string | null;
   is_banned: boolean;
+  allowed_categories: string[];
+  years_experience: number | null;
+  completed_orders: number;
 };
 
 export function useSession() {

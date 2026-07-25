@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { SampleImage } from "@/components/SampleImage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Compass, Sparkles, ShieldCheck, Zap, Users, ArrowRight,
-  Image as ImageIcon, Scissors, Wand2, Boxes, Server, Globe, Plug, User, PenTool,
+  Image as ImageIcon, Scissors, Wand2, Boxes, Server, Globe, Plug, User, PenTool, Flame, Star, Heart, Crown,
 } from "lucide-react";
+import { DISCORD_INVITE_URL } from "@/lib/mctech";
 
 const CATEGORIES = [
   { key: "thumbnail", label: "Thumbnails", desc: "Click-worthy cover art", Icon: ImageIcon },
@@ -22,6 +24,7 @@ const CATEGORIES = [
 ];
 
 type Sample = { id: string; title: string; image_url: string; price: number; category: string; designer_id: string };
+type Designer = { id: string; username: string | null; display_name: string | null; avatar_url: string | null; designer_tag: string | null; completed_orders: number };
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,10 +42,62 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const [suggestions, setSuggestions] = useState<Sample[]>([]);
+  const [trending, setTrending] = useState<Sample[]>([]);
+  const [mostLiked, setMostLiked] = useState<Sample[]>([]);
+  const [mostRated, setMostRated] = useState<Sample[]>([]);
+  const [popularDesigners, setPopularDesigners] = useState<Designer[]>([]);
+  const [designerOfMonth, setDesignerOfMonth] = useState<Designer | null>(null);
+
   useEffect(() => {
-    supabase.from("samples").select("id,title,image_url,price,category,designer_id")
-      .eq("status", "approved").order("created_at", { ascending: false }).limit(8)
-      .then(({ data }) => setSuggestions((data as Sample[]) ?? []));
+    (async () => {
+      const [rec, trend, liked] = await Promise.all([
+        supabase.from("samples").select("id,title,image_url,price,category,designer_id").eq("status", "approved").order("created_at", { ascending: false }).limit(8),
+        supabase.from("samples").select("id,title,image_url,price,category,designer_id").eq("status", "approved").order("views", { ascending: false }).limit(8),
+        supabase.from("samples").select("id,title,image_url,price,category,designer_id").eq("status", "approved").order("likes", { ascending: false }).limit(8),
+      ]);
+      setSuggestions((rec.data as Sample[]) ?? []);
+      setTrending((trend.data as Sample[]) ?? []);
+      setMostLiked((liked.data as Sample[]) ?? []);
+
+      // most rated — aggregate sample_ratings on client
+      const { data: ratings } = await supabase.from("sample_ratings").select("sample_id, rating");
+      const bySample = new Map<string, { sum: number; n: number }>();
+      for (const r of (ratings ?? []) as any[]) {
+        const acc = bySample.get(r.sample_id) ?? { sum: 0, n: 0 };
+        acc.sum += r.rating; acc.n += 1;
+        bySample.set(r.sample_id, acc);
+      }
+      const topIds = Array.from(bySample.entries())
+        .filter(([, v]) => v.n >= 1)
+        .sort((a, b) => (b[1].sum / b[1].n) - (a[1].sum / a[1].n))
+        .slice(0, 8)
+        .map(([id]) => id);
+      if (topIds.length) {
+        const { data: mr } = await supabase.from("samples").select("id,title,image_url,price,category,designer_id").in("id", topIds).eq("status", "approved");
+        setMostRated((mr as Sample[]) ?? []);
+      }
+
+      // popular designers by follower count
+      const { data: follows } = await supabase.from("follows").select("designer_id");
+      const count = new Map<string, number>();
+      for (const f of (follows ?? []) as any[]) count.set(f.designer_id, (count.get(f.designer_id) ?? 0) + 1);
+      const topDesignerIds = Array.from(count.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([id]) => id);
+      if (topDesignerIds.length) {
+        const { data: pd } = await supabase.from("profiles").select("id,username,display_name,avatar_url,designer_tag,completed_orders").in("id", topDesignerIds);
+        setPopularDesigners((pd as Designer[]) ?? []);
+      }
+
+      // designer of the month = highest completed_orders (last 30d) via orders
+      const since = new Date(Date.now() - 30 * 86400_000).toISOString();
+      const { data: recentOrders } = await supabase.from("orders").select("designer_id").eq("status", "completed").gte("updated_at", since);
+      const ordCount = new Map<string, number>();
+      for (const o of (recentOrders ?? []) as any[]) ordCount.set(o.designer_id, (ordCount.get(o.designer_id) ?? 0) + 1);
+      const top = Array.from(ordCount.entries()).sort((a, b) => b[1] - a[1])[0];
+      if (top) {
+        const { data: dm } = await supabase.from("profiles").select("id,username,display_name,avatar_url,designer_tag,completed_orders").eq("id", top[0]).maybeSingle();
+        setDesignerOfMonth(dm as Designer | null);
+      }
+    })();
   }, []);
 
   return (
@@ -77,40 +132,44 @@ function Home() {
         <TrustItem Icon={Users} title="Built for creators" body="Made by Minecraft creators, for Minecraft creators." />
       </section>
 
-      {/* Suggestions */}
-      <section className="mt-20">
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Featured work</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">Recent samples</h2>
-          </div>
-          <Link to="/browse" className="group inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-primary">
-            Browse all <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-          </Link>
-        </div>
-        {suggestions.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {suggestions.map((s) => (
-              <Link key={s.id} to="/samples/$id" params={{ id: s.id }} className="group">
-                <Card className="overflow-hidden border-border/50 bg-card/60 backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_0_40px_-10px_color-mix(in_oklab,var(--neon-purple)_50%,transparent)]">
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <SampleImage src={s.image_url} alt={s.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
-                  </div>
-                  <div className="p-3">
-                    <p className="line-clamp-1 text-sm font-medium">{s.title}</p>
-                    <div className="mt-1 flex items-center justify-between">
-                      <p className="text-xs capitalize text-muted-foreground">{s.category.replace("-", " ")}</p>
-                      <p className="text-sm font-semibold neon-gradient-text">₹{s.price}</p>
-                    </div>
-                  </div>
+      <SampleRow title="Recent samples" eyebrow="Featured work" data={suggestions} />
+      <SampleRow title="Trending now" eyebrow="Hot" Icon={Flame} data={trending} />
+      <SampleRow title="Most rated" eyebrow="Community favourites" Icon={Star} data={mostRated} />
+      <SampleRow title="Most liked" eyebrow="Fan-favourites" Icon={Heart} data={mostLiked} />
+
+      {/* Popular designers */}
+      {popularDesigners.length > 0 && (
+        <section className="mt-20">
+          <SectionHeader eyebrow="Talent" title="Popular designers" Icon={Crown} />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {popularDesigners.map((d) => (
+              <Link key={d.id} to="/u/$username" params={{ username: d.username ?? "" }} className="group">
+                <Card className="flex flex-col items-center gap-2 p-4 text-center glass transition hover:neon-glow">
+                  <Avatar className="h-14 w-14"><AvatarImage src={d.avatar_url ?? undefined} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                  <p className="line-clamp-1 text-sm font-medium">{d.display_name || d.username}</p>
+                  <p className="text-[10px] text-muted-foreground">{d.designer_tag || "Designer"}</p>
                 </Card>
               </Link>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
+
+      {/* Designer of the month */}
+      {designerOfMonth && (
+        <section className="mt-16">
+          <SectionHeader eyebrow="Spotlight" title="Designer of the month" Icon={Crown} />
+          <Link to="/u/$username" params={{ username: designerOfMonth.username ?? "" }}>
+            <Card className="flex items-center gap-4 p-6 glass transition hover:neon-glow">
+              <Avatar className="h-16 w-16"><AvatarImage src={designerOfMonth.avatar_url ?? undefined} /><AvatarFallback><User /></AvatarFallback></Avatar>
+              <div>
+                <p className="text-lg font-semibold">{designerOfMonth.display_name || designerOfMonth.username}</p>
+                <p className="text-xs text-muted-foreground">{designerOfMonth.designer_tag || "Designer"} · {designerOfMonth.completed_orders} orders completed</p>
+              </div>
+            </Card>
+          </Link>
+        </section>
+      )}
 
       {/* Categories */}
       <section className="mt-20">
@@ -139,25 +198,75 @@ function Home() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Discord CTA */}
       <section className="mt-20">
         <Card className="relative overflow-hidden border-primary/30 bg-card/60 p-10 text-center backdrop-blur">
           <div className="pointer-events-none absolute inset-0 opacity-60"
                style={{ background: "radial-gradient(ellipse at center, color-mix(in oklab, var(--neon-purple) 20%, transparent), transparent 60%)" }} />
           <div className="relative">
             <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Are you a designer? <span className="neon-gradient-text">Get paid for your craft.</span>
+              Talk to the crew. <span className="neon-gradient-text">Join our Discord community.</span>
             </h3>
             <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
-              Apply once. Get reviewed. Start earning from a growing audience of Minecraft creators.
+              Chat with designers and creators, get feedback, and hear about upcoming drops.
             </p>
             <Button asChild size="lg" className="mt-6 neon-glow">
-              <Link to="/apply">Apply as a designer</Link>
+              <a href={DISCORD_INVITE_URL} target="_blank" rel="noreferrer">Join our Discord community</a>
             </Button>
           </div>
         </Card>
       </section>
     </div>
+  );
+}
+
+function SectionHeader({ eyebrow, title, Icon }: { eyebrow: string; title: string; Icon?: any }) {
+  return (
+    <div className="mb-6 flex items-end justify-between">
+      <div>
+        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{eyebrow}</p>
+        <h2 className="mt-1 flex items-center gap-2 text-2xl font-semibold tracking-tight">
+          {Icon && <Icon className="h-5 w-5 text-primary" />}{title}
+        </h2>
+      </div>
+    </div>
+  );
+}
+
+function SampleRow({ title, eyebrow, Icon, data }: { title: string; eyebrow: string; Icon?: any; data: Sample[] }) {
+  if (data.length === 0) return null;
+  return (
+    <section className="mt-16">
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{eyebrow}</p>
+          <h2 className="mt-1 flex items-center gap-2 text-2xl font-semibold tracking-tight">
+            {Icon && <Icon className="h-5 w-5 text-primary" />}{title}
+          </h2>
+        </div>
+        <Link to="/browse" className="group inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-primary">
+          Browse all <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {data.slice(0, 8).map((s) => (
+          <Link key={s.id} to="/samples/$id" params={{ id: s.id }} className="group">
+            <Card className="overflow-hidden border-border/50 bg-card/60 backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_0_40px_-10px_color-mix(in_oklab,var(--neon-purple)_50%,transparent)]">
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <SampleImage src={s.image_url} alt={s.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+              </div>
+              <div className="p-3">
+                <p className="line-clamp-1 text-sm font-medium">{s.title}</p>
+                <div className="mt-1 flex items-center justify-between">
+                  <p className="text-xs capitalize text-muted-foreground">{s.category.replace("-", " ")}</p>
+                  <p className="text-sm font-semibold neon-gradient-text">₹{s.price}</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -172,16 +281,5 @@ function TrustItem({ Icon, title, body }: { Icon: any; title: string; body: stri
         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{body}</p>
       </div>
     </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <Card className="border-dashed border-border/60 bg-card/30 p-10 text-center backdrop-blur">
-      <p className="text-sm text-muted-foreground">
-        Fresh samples are being reviewed.{" "}
-        <Link to="/browse" className="text-primary underline underline-offset-4">Browse the full catalogue</Link>.
-      </p>
-    </Card>
   );
 }
