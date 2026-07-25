@@ -95,7 +95,7 @@ function OrderDetail() {
     if (!order) return;
     setBusy(true);
     // Log mock purchase
-    await supabase.from("mock_purchases").insert({ user_id: user!.id, item_type: "order", item_id: order.id, amount: order.price }).select();
+    await supabase.from("mock_purchases").insert({ user_id: user!.id, item_type: "order", item_key: order.id, price: order.price }).select();
     const { error } = await supabase.from("orders").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", order.id);
     if (error) { setBusy(false); return toast.error(error.message); }
     // Immediately mark as completed to count toward designer stats
