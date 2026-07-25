@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           admin_note: string | null
           age_group: string
+          categories: string[]
           category: string
           contact: string
           created_at: string
@@ -30,10 +31,12 @@ export type Database = {
           updated_at: string
           user_id: string
           why_join: string
+          years_experience: number | null
         }
         Insert: {
           admin_note?: string | null
           age_group: string
+          categories?: string[]
           category: string
           contact: string
           created_at?: string
@@ -46,10 +49,12 @@ export type Database = {
           updated_at?: string
           user_id: string
           why_join: string
+          years_experience?: number | null
         }
         Update: {
           admin_note?: string | null
           age_group?: string
+          categories?: string[]
           category?: string
           contact?: string
           created_at?: string
@@ -62,6 +67,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           why_join?: string
+          years_experience?: number | null
         }
         Relationships: []
       }
@@ -80,6 +86,54 @@ export type Database = {
           total_slots?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string
+          designer_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          designer_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          designer_id?: string
+          follower_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          attachment_path: string | null
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          attachment_path?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          attachment_path?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          recipient_id?: string
+          sender_id?: string
         }
         Relationships: []
       }
@@ -146,6 +200,8 @@ export type Database = {
       orders: {
         Row: {
           attachment_paths: string[]
+          budget_max: number | null
+          budget_min: number | null
           category: string
           created_at: string
           customer_id: string
@@ -154,15 +210,20 @@ export type Database = {
           delivered_at: string | null
           designer_id: string
           details: string
+          expired: boolean
           id: string
           paid_at: string | null
           price: number
           reference_url: string | null
           status: string
+          title: string | null
           updated_at: string
+          watermark_path: string | null
         }
         Insert: {
           attachment_paths?: string[]
+          budget_max?: number | null
+          budget_min?: number | null
           category: string
           created_at?: string
           customer_id: string
@@ -171,15 +232,20 @@ export type Database = {
           delivered_at?: string | null
           designer_id: string
           details: string
+          expired?: boolean
           id?: string
           paid_at?: string | null
           price: number
           reference_url?: string | null
           status?: string
+          title?: string | null
           updated_at?: string
+          watermark_path?: string | null
         }
         Update: {
           attachment_paths?: string[]
+          budget_max?: number | null
+          budget_min?: number | null
           category?: string
           created_at?: string
           customer_id?: string
@@ -188,20 +254,25 @@ export type Database = {
           delivered_at?: string | null
           designer_id?: string
           details?: string
+          expired?: boolean
           id?: string
           paid_at?: string | null
           price?: number
           reference_url?: string | null
           status?: string
+          title?: string | null
           updated_at?: string
+          watermark_path?: string | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
+          allowed_categories: string[]
           avatar_url: string | null
           banner_url: string | null
           bio: string | null
+          completed_orders: number
           created_at: string
           designer_tag: string | null
           display_name: string | null
@@ -211,11 +282,14 @@ export type Database = {
           membership: string
           updated_at: string
           username: string | null
+          years_experience: number | null
         }
         Insert: {
+          allowed_categories?: string[]
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          completed_orders?: number
           created_at?: string
           designer_tag?: string | null
           display_name?: string | null
@@ -225,11 +299,14 @@ export type Database = {
           membership?: string
           updated_at?: string
           username?: string | null
+          years_experience?: number | null
         }
         Update: {
+          allowed_categories?: string[]
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
+          completed_orders?: number
           created_at?: string
           designer_tag?: string | null
           display_name?: string | null
@@ -239,6 +316,7 @@ export type Database = {
           membership?: string
           updated_at?: string
           username?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }
@@ -273,6 +351,32 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "reports_sample_id_fkey"
+            columns: ["sample_id"]
+            isOneToOne: false
+            referencedRelation: "samples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sample_likes: {
+        Row: {
+          created_at: string
+          sample_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          sample_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          sample_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sample_likes_sample_id_fkey"
             columns: ["sample_id"]
             isOneToOne: false
             referencedRelation: "samples"
@@ -316,13 +420,18 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          description: string | null
           designer_id: string
+          gallery_paths: string[]
           game_type: string
           id: string
           image_url: string
           likes: number
+          media_type: string
+          preview_path: string | null
           price: number
           reject_reason: string | null
+          server_id: string | null
           status: string
           title: string
           updated_at: string
@@ -331,13 +440,18 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          description?: string | null
           designer_id: string
+          gallery_paths?: string[]
           game_type?: string
           id?: string
           image_url: string
           likes?: number
+          media_type?: string
+          preview_path?: string | null
           price: number
           reject_reason?: string | null
+          server_id?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -346,13 +460,18 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          description?: string | null
           designer_id?: string
+          gallery_paths?: string[]
           game_type?: string
           id?: string
           image_url?: string
           likes?: number
+          media_type?: string
+          preview_path?: string | null
           price?: number
           reject_reason?: string | null
+          server_id?: string | null
           status?: string
           title?: string
           updated_at?: string
