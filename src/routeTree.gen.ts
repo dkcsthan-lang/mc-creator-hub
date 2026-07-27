@@ -18,6 +18,7 @@ import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as SamplesIdRouteImport } from './routes/samples.$id'
 import { Route as CategoryCatRouteImport } from './routes/category.$cat'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
+import { Route as AuthenticatedSponsorRouteImport } from './routes/_authenticated/sponsor'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -70,6 +71,11 @@ const CategoryCatRoute = CategoryCatRouteImport.update({
 const AuthenticatedStoreRoute = AuthenticatedStoreRouteImport.update({
   id: '/store',
   path: '/store',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSponsorRoute = AuthenticatedSponsorRouteImport.update({
+  id: '/sponsor',
+  path: '/sponsor',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
+  '/sponsor': typeof AuthenticatedSponsorRoute
   '/store': typeof AuthenticatedStoreRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
+  '/sponsor': typeof AuthenticatedSponsorRoute
   '/store': typeof AuthenticatedStoreRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/sponsor': typeof AuthenticatedSponsorRoute
   '/_authenticated/store': typeof AuthenticatedStoreRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/orders'
     | '/profile'
+    | '/sponsor'
     | '/store'
     | '/category/$cat'
     | '/samples/$id'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/orders'
     | '/profile'
+    | '/sponsor'
     | '/store'
     | '/category/$cat'
     | '/samples/$id'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/_authenticated/orders'
     | '/_authenticated/profile'
+    | '/_authenticated/sponsor'
     | '/_authenticated/store'
     | '/category/$cat'
     | '/samples/$id'
@@ -314,6 +326,13 @@ declare module '@tanstack/react-router' {
       path: '/store'
       fullPath: '/store'
       preLoaderRoute: typeof AuthenticatedStoreRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sponsor': {
+      id: '/_authenticated/sponsor'
+      path: '/sponsor'
+      fullPath: '/sponsor'
+      preLoaderRoute: typeof AuthenticatedSponsorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -415,6 +434,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSponsorRoute: typeof AuthenticatedSponsorRoute
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
 }
 
@@ -425,6 +445,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSponsorRoute: AuthenticatedSponsorRoute,
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
 }
 
