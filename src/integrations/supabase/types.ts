@@ -418,6 +418,7 @@ export type Database = {
       }
       samples: {
         Row: {
+          attachment_path: string | null
           category: string
           created_at: string
           description: string | null
@@ -433,11 +434,13 @@ export type Database = {
           reject_reason: string | null
           server_id: string | null
           status: string
+          tags: string[]
           title: string
           updated_at: string
           views: number
         }
         Insert: {
+          attachment_path?: string | null
           category: string
           created_at?: string
           description?: string | null
@@ -453,11 +456,13 @@ export type Database = {
           reject_reason?: string | null
           server_id?: string | null
           status?: string
+          tags?: string[]
           title: string
           updated_at?: string
           views?: number
         }
         Update: {
+          attachment_path?: string | null
           category?: string
           created_at?: string
           description?: string | null
@@ -473,9 +478,55 @@ export type Database = {
           reject_reason?: string | null
           server_id?: string | null
           status?: string
+          tags?: string[]
           title?: string
           updated_at?: string
           views?: number
+        }
+        Relationships: []
+      }
+      sponsor_ads: {
+        Row: {
+          created_at: string
+          destination_url: string
+          duration_days: number
+          expires_at: string
+          id: string
+          image_path: string
+          price: number
+          starts_at: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_url: string
+          duration_days: number
+          expires_at: string
+          id?: string
+          image_path: string
+          price: number
+          starts_at?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_url?: string
+          duration_days?: number
+          expires_at?: string
+          id?: string
+          image_path?: string
+          price?: number
+          starts_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
