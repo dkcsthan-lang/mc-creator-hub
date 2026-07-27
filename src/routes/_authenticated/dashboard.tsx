@@ -126,16 +126,19 @@ function UploadWizard({ allowed, onDone }: { allowed: string[]; onDone: () => vo
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(100);
+  const [tagsStr, setTagsStr] = useState("");
   const [mainFile, setMainFile] = useState<File | null>(null);
+  const [attachFile, setAttachFile] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<File | null>(null);
   const [gallery, setGallery] = useState<File[]>([]);
   const [serverId, setServerId] = useState("");
   const [busy, setBusy] = useState(false);
 
   const media = categoryMedia(category);
 
-  async function upload(file: File) {
+  async function upload(file: File, bucket = "samples") {
     const path = `${user!.id}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("samples").upload(path, file);
+    const { error } = await supabase.storage.from(bucket).upload(path, file);
     if (error) throw new Error(error.message);
     return path;
   }
@@ -143,11 +146,14 @@ function UploadWizard({ allowed, onDone }: { allowed: string[]; onDone: () => vo
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    const tags = tagsStr.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+    if (tags.length === 0) return toast.error("Add at least one tag (comma separated).");
     setBusy(true);
     try {
       let image_url = "";
       let preview_path: string | null = null;
       let gallery_paths: string[] = [];
+      let attachment_path: string | null = null;
       let server_id: string | null = null;
 
       if (media === "server-id") {
@@ -158,14 +164,25 @@ function UploadWizard({ allowed, onDone }: { allowed: string[]; onDone: () => vo
           image_url = path;
           preview_path = path;
         } else {
-          image_url = "placeholder"; // storage-less card
+          image_url = "placeholder";
         }
       } else if (media === "zip-gallery") {
-        if (!mainFile) throw new Error("Upload the ZIP file");
-        if (gallery.length === 0) throw new Error("Upload at least one showcase image");
-        preview_path = await upload(mainFile);
+        if (!mainFile) throw new Error("Attach the ZIP / project file");
+        if (gallery.length === 0) throw new Error("Add at least one showcase image");
+        attachment_path = await upload(mainFile);
+        preview_path = attachment_path;
         for (const f of gallery) gallery_paths.push(await upload(f));
-        image_url = gallery_paths[0]; // cover
+        image_url = gallery_paths[0];
+      } else if (media === "gallery-file") {
+        if (gallery.length === 0) throw new Error("Add at least one showcase image");
+        for (const f of gallery) gallery_paths.push(await upload(f));
+        image_url = gallery_paths[0];
+        if (mainFile) attachment_path = await upload(mainFile);
+      } else if (media === "video-preview") {
+        if (!mainFile) throw new Error("Upload the video");
+        if (!previewImage) throw new Error("Upload a preview image");
+        preview_path = await upload(mainFile);
+        image_url = await upload(previewImage);
       } else {
         if (!mainFile) throw new Error("Upload the preview file");
         image_url = await upload(mainFile);
@@ -175,7 +192,8 @@ function UploadWizard({ allowed, onDone }: { allowed: string[]; onDone: () => vo
       const { error } = await supabase.from("samples").insert({
         designer_id: user.id, title, description, price, category, game_type: "minecraft",
         image_url, media_type: media, gallery_paths, server_id, preview_path,
-      });
+        tags, attachment_path,
+      } as any);
       if (error) throw new Error(error.message);
       toast.success("Sample submitted for admin approval");
       onDone();
@@ -204,12 +222,16 @@ function UploadWizard({ allowed, onDone }: { allowed: string[]; onDone: () => vo
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={submit} className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
       <div className="text-xs text-muted-foreground">Category: <button type="button" className="underline" onClick={() => setStep("cat")}>{CATEGORY_LABELS[category] ?? category} — change</button></div>
 
       <div><Label>Title</Label><Input required value={title} onChange={(e) => setTitle(e.target.value)} /></div>
       <div><Label>Short description (optional)</Label><Textarea rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
       <div><Label>Price (₹)</Label><Input type="number" min={10} required value={price} onChange={(e) => setPrice(parseInt(e.target.value || "0"))} /></div>
+      <div>
+        <Label>Tags (required, comma-separated)</Label>
+        <Input required placeholder="gaming, tutorial, vlog, minecraft" value={tagsStr} onChange={(e) => setTagsStr(e.target.value)} />
+      </div>
 
       {media === "image-only" && (
         <div><Label>Preview image</Label><Input type="file" accept="image/*" required onChange={(e) => setMainFile(e.target.files?.[0] ?? null)} /></div>
@@ -217,10 +239,22 @@ function UploadWizard({ allowed, onDone }: { allowed: string[]; onDone: () => vo
       {media === "video" && (
         <div><Label>Preview (video or image)</Label><Input type="file" accept="video/*,image/*" required onChange={(e) => setMainFile(e.target.files?.[0] ?? null)} /></div>
       )}
+      {media === "video-preview" && (
+        <>
+          <div><Label>Video file</Label><Input type="file" accept="video/*" required onChange={(e) => setMainFile(e.target.files?.[0] ?? null)} /></div>
+          <div><Label>Preview image (thumbnail)</Label><Input type="file" accept="image/*" required onChange={(e) => setPreviewImage(e.target.files?.[0] ?? null)} /></div>
+        </>
+      )}
       {media === "zip-gallery" && (
         <>
-          <div><Label>ZIP file of your work</Label><Input type="file" accept=".zip,application/zip" required onChange={(e) => setMainFile(e.target.files?.[0] ?? null)} /></div>
+          <div><Label>Project file (ZIP or mod file)</Label><Input type="file" accept=".zip,.jar,.rar,application/zip,application/x-zip-compressed" required onChange={(e) => setMainFile(e.target.files?.[0] ?? null)} /></div>
           <div><Label>Showcase gallery (1 or more images)</Label><Input type="file" accept="image/*" multiple required onChange={(e) => setGallery(Array.from(e.target.files ?? []))} /></div>
+        </>
+      )}
+      {media === "gallery-file" && (
+        <>
+          <div><Label>Showcase gallery (1 or more images)</Label><Input type="file" accept="image/*" multiple required onChange={(e) => setGallery(Array.from(e.target.files ?? []))} /></div>
+          <div><Label>Attach file (optional — pack / schematic)</Label><Input type="file" onChange={(e) => setAttachFile(e.target.files?.[0] ?? null)} /></div>
         </>
       )}
       {media === "server-id" && (
