@@ -177,7 +177,7 @@ function UploadWizard({ allowed, onDone }: { allowed: string[]; onDone: () => vo
         if (gallery.length === 0) throw new Error("Add at least one showcase image");
         for (const f of gallery) gallery_paths.push(await upload(f));
         image_url = gallery_paths[0];
-        if (mainFile) attachment_path = await upload(mainFile);
+        if (attachFile) attachment_path = await upload(attachFile);
       } else if (media === "video-preview") {
         if (!mainFile) throw new Error("Upload the video");
         if (!previewImage) throw new Error("Upload a preview image");
