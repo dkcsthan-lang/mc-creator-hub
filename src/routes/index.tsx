@@ -7,20 +7,25 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Compass, Sparkles, ShieldCheck, Zap, Users, ArrowRight,
-  Image as ImageIcon, Scissors, Wand2, Boxes, Server, Globe, Plug, User, PenTool, Flame, Star, Heart, Crown,
+  Image as ImageIcon, Scissors, Wand2, Boxes, Server, Globe, Plug, User, Film, Palette, Hammer, Package, Layers, Flame, Star, Heart, Crown,
 } from "lucide-react";
 import { DISCORD_INVITE_URL } from "@/lib/mctech";
+import { SponsorBanner } from "@/components/SponsorBanner";
 
 const CATEGORIES = [
   { key: "thumbnail", label: "Thumbnails", desc: "Click-worthy cover art", Icon: ImageIcon },
   { key: "editing", label: "Video Editing", desc: "Cuts, pacing, polish", Icon: Scissors },
+  { key: "cinematics", label: "Cinematics", desc: "Story-driven trailers", Icon: Film },
   { key: "vfx", label: "VFX", desc: "Motion & visual effects", Icon: Wand2 },
+  { key: "gfx-designers", label: "GFX Designers", desc: "Logos, banners, branding", Icon: Palette },
   { key: "models", label: "3D Models", desc: "Blockbench & rigs", Icon: Boxes },
+  { key: "minecraft-builds", label: "Minecraft Builds", desc: "Maps, spawns, hubs", Icon: Hammer },
+  { key: "resource-packs", label: "Resource Packs", desc: "Textures & sounds", Icon: Layers },
+  { key: "mod-developers", label: "Mod Developers", desc: "Forge & Fabric mods", Icon: Package },
   { key: "server-dev", label: "Server Dev", desc: "Setup, config, systems", Icon: Server },
   { key: "website-dev", label: "Web Dev", desc: "Landing & store fronts", Icon: Globe },
   { key: "plugin-dev", label: "Plugins", desc: "Custom Java & Bukkit", Icon: Plug },
   { key: "skin-maker", label: "Skins", desc: "Custom character skins", Icon: User },
-  { key: "designer", label: "Graphics", desc: "Logos, banners, branding", Icon: PenTool },
 ];
 
 type Sample = { id: string; title: string; image_url: string; price: number; category: string; designer_id: string };
@@ -124,6 +129,9 @@ function Home() {
           </Button>
         </div>
       </section>
+
+      {/* Sponsor banner */}
+      <SponsorBanner />
 
       {/* Trust strip */}
       <section className="mt-14 grid grid-cols-1 gap-3 sm:grid-cols-3">
