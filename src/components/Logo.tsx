@@ -1,4 +1,4 @@
-import logo from "@/assets/mctech-logo.png";
+import logo from "@/assets/onlycreators-logo.png";
 import { Link } from "@tanstack/react-router";
 
 export function Logo({ className }: { className?: string }) {
