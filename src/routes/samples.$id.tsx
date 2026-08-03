@@ -34,8 +34,13 @@ function SampleDetail() {
   const [designer, setDesigner] = useState<{ username: string | null; avatar_url: string | null; display_name: string | null } | null>(null);
   const [avgRating, setAvgRating] = useState<{ avg: number; count: number }>({ avg: 0, count: 0 });
   const [myRating, setMyRating] = useState(0);
+  const [likes, setLikes] = useState(0);
+  const [liked, setLiked] = useState(false);
   const [reason, setReason] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
+
+  // A designer cannot rate, like or report their own showcase sample.
+  const isOwnSample = !!user && !!sample && user.id === sample.designer_id;
 
   useEffect(() => {
     supabase.from("samples").select("*").eq("id", id).maybeSingle().then(({ data }) => {
@@ -53,14 +58,34 @@ function SampleDetail() {
         if (mine) setMyRating(mine.rating);
       }
     });
+    supabase.from("sample_likes").select("user_id").eq("sample_id", id).then(({ data }) => {
+      const rows = (data ?? []) as { user_id: string }[];
+      setLikes(rows.length);
+      setLiked(!!user && rows.some((r) => r.user_id === user.id));
+    });
   }, [id, user?.id]);
 
   async function rate(n: number) {
     if (!user) return nav({ to: "/auth" });
+    if (isOwnSample) return toast.error("You can't rate your own sample.");
     setMyRating(n);
     const { error } = await supabase.from("sample_ratings").upsert({ sample_id: id, user_id: user.id, rating: n });
     if (error) return toast.error(error.message);
     toast.success("Thanks for rating!");
+  }
+
+  async function toggleLike() {
+    if (!user) return nav({ to: "/auth" });
+    if (isOwnSample) return toast.error("You can't like your own sample.");
+    if (liked) {
+      const { error } = await supabase.from("sample_likes").delete().eq("sample_id", id).eq("user_id", user.id);
+      if (error) return toast.error(error.message);
+      setLiked(false); setLikes((n) => Math.max(0, n - 1));
+    } else {
+      const { error } = await supabase.from("sample_likes").insert({ sample_id: id, user_id: user.id });
+      if (error) return toast.error(error.message);
+      setLiked(true); setLikes((n) => n + 1);
+    }
   }
 
   async function submitReport() {
@@ -74,6 +99,7 @@ function SampleDetail() {
   }
 
   if (!sample) return <div className="p-10 text-center text-muted-foreground">Loading...</div>;
+
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
