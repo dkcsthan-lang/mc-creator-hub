@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 type Order = { id: string; category: string; details: string; price: number; status: string; customer_id: string; designer_id: string; created_at: string };
 
 export const Route = createFileRoute("/_authenticated/orders")({
-  head: () => ({ meta: [{ title: "Orders — MCtech" }, { name: "description", content: "Your orders on MCtech." }] }),
+  head: () => ({ meta: [{ title: "Orders — OnlyCreators" }, { name: "description", content: "Your orders on OnlyCreators." }] }),
   component: OrdersList,
 });
 

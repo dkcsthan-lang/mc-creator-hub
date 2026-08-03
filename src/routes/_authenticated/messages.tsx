@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/messages")({
-  head: () => ({ meta: [{ title: "Messages — MCtech" }] }),
+  head: () => ({ meta: [{ title: "Messages — OnlyCreators" }] }),
   component: MessagesList,
 });
 

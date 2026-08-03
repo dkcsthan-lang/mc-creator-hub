@@ -15,10 +15,10 @@ import { CATEGORIES, CATEGORY_LABELS } from "@/lib/mctech";
 export const Route = createFileRoute("/apply")({
   head: () => ({
     meta: [
-      { title: "Apply as designer — MCtech" },
-      { name: "description", content: "Apply to sell your Minecraft creator services on MCtech." },
-      { property: "og:title", content: "Apply as designer — MCtech" },
-      { property: "og:description", content: "Apply to sell your Minecraft creator services on MCtech." },
+      { title: "Apply as designer — OnlyCreators" },
+      { name: "description", content: "Apply to sell your Minecraft creator services on OnlyCreators." },
+      { property: "og:title", content: "Apply as designer — OnlyCreators" },
+      { property: "og:description", content: "Apply to sell your Minecraft creator services on OnlyCreators." },
     ],
   }),
   component: Apply,

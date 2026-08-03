@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { DISCORD_INVITE_URL } from "@/lib/mctech";
 import { SponsorBanner } from "@/components/SponsorBanner";
+import { useRoles } from "@/lib/session";
 
 const CATEGORIES = [
   { key: "thumbnail", label: "Thumbnails", desc: "Click-worthy cover art", Icon: ImageIcon },
@@ -34,9 +35,9 @@ type Designer = { id: string; username: string | null; display_name: string | nu
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MCtech — Minecraft creator services, done properly" },
+      { title: "OnlyCreators — Minecraft creator services, done properly" },
       { name: "description", content: "A curated marketplace for Minecraft creators. Thumbnails, editing, VFX, models, plugins and more — from vetted professional designers." },
-      { property: "og:title", content: "MCtech — Minecraft creator services" },
+      { property: "og:title", content: "OnlyCreators — Minecraft creator services" },
       { property: "og:description", content: "Vetted designers, transparent pricing, secure delivery." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -46,6 +47,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { isAdmin, isDesigner } = useRoles();
+  const isSeller = isAdmin || isDesigner;
   const [suggestions, setSuggestions] = useState<Sample[]>([]);
   const [trending, setTrending] = useState<Sample[]>([]);
   const [mostLiked, setMostLiked] = useState<Sample[]>([]);
@@ -124,10 +127,18 @@ function Home() {
           <Button asChild size="lg" className="neon-glow">
             <Link to="/browse"><Compass className="mr-2 h-4 w-4" />Explore services</Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/apply"><Sparkles className="mr-2 h-4 w-4" />Join as a designer</Link>
-          </Button>
+          {!isSeller && (
+            <Button asChild size="lg" variant="outline">
+              <Link to="/apply"><Sparkles className="mr-2 h-4 w-4" />Join as a designer</Link>
+            </Button>
+          )}
+          {isSeller && (
+            <Button asChild size="lg" variant="outline">
+              <Link to="/dashboard"><Sparkles className="mr-2 h-4 w-4" />Your dashboard</Link>
+            </Button>
+          )}
         </div>
+
       </section>
 
       {/* Sponsor banner */}

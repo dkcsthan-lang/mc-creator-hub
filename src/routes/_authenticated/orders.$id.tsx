@@ -18,7 +18,7 @@ type Order = {
 };
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
-  head: () => ({ meta: [{ title: "Order — MCtech" }] }),
+  head: () => ({ meta: [{ title: "Order — OnlyCreators" }] }),
   component: OrderDetail,
 });
 

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
@@ -8,10 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SPONSOR_DURATIONS } from "@/lib/mctech";
-import { Megaphone, ArrowLeft } from "lucide-react";
+import { Megaphone, ArrowLeft, LogIn } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/sponsor")({
-  head: () => ({ meta: [{ title: "Sponsor a banner — MCtech" }] }),
+export const Route = createFileRoute("/sponsor")({
+  head: () => ({
+    meta: [
+      { title: "Sponsor a banner — OnlyCreators" },
+      { name: "description", content: "Put your ad on the OnlyCreators homepage banner. Pick a duration, upload your banner, and go live." },
+      { property: "og:title", content: "Sponsor a banner — OnlyCreators" },
+      { property: "og:description", content: "Homepage banner sponsorships for Minecraft brands, servers and creators." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Sponsor,
 });
 
@@ -28,7 +37,11 @@ function Sponsor() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      toast.error("Please sign in to submit your sponsorship.");
+      nav({ to: "/auth", search: { redirect: "/sponsor" } });
+      return;
+    }
     if (!file) return toast.error("Upload a banner image or GIF.");
     if (!destUrl.startsWith("http")) return toast.error("Destination link must be a full URL.");
     setBusy(true);
@@ -52,7 +65,7 @@ function Sponsor() {
       toast.success(`Ad live for ${dur.label} (mock payment)`);
       nav({ to: "/" });
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err?.message ?? "Could not submit your ad. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -73,6 +86,15 @@ function Sponsor() {
           <h1 className="text-3xl font-bold neon-gradient-text">Sponsor a banner</h1>
         </div>
       </div>
+
+      {!user && (
+        <Card className="mb-4 flex items-center justify-between gap-3 p-4 glass">
+          <p className="text-sm text-muted-foreground">Sign in to complete your sponsorship.</p>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/auth" search={{ redirect: "/sponsor" }}><LogIn className="mr-1 h-4 w-4" />Sign in</Link>
+          </Button>
+        </Card>
+      )}
 
       <Card className="p-6 glass">
         <form onSubmit={submit} className="space-y-5">

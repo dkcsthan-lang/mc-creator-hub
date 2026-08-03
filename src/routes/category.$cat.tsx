@@ -24,10 +24,10 @@ export const Route = createFileRoute("/category/$cat")({
     const l = LABELS[params.cat]?.label ?? params.cat;
     return {
       meta: [
-        { title: `${l} — MCtech` },
-        { name: "description", content: `Browse ${l.toLowerCase()} from MCtech designers.` },
-        { property: "og:title", content: `${l} — MCtech` },
-        { property: "og:description", content: `Approved ${l.toLowerCase()} samples on MCtech.` },
+        { title: `${l} — OnlyCreators` },
+        { name: "description", content: `Browse ${l.toLowerCase()} from OnlyCreators designers.` },
+        { property: "og:title", content: `${l} — OnlyCreators` },
+        { property: "og:description", content: `Approved ${l.toLowerCase()} samples on OnlyCreators.` },
       ],
     };
   },

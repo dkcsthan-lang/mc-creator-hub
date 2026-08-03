@@ -14,7 +14,7 @@ import {
 import { CATEGORY_LABELS } from "@/lib/mctech";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin — MCtech" }] }),
+  head: () => ({ meta: [{ title: "Admin — OnlyCreators" }] }),
   component: Admin,
 });
 
