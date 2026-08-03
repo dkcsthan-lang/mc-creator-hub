@@ -13,10 +13,10 @@ import { levelFromCompleted } from "@/lib/mctech";
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
     meta: [
-      { title: `@${params.username} — MCtech` },
-      { name: "description", content: `Portfolio of @${params.username} on MCtech.` },
-      { property: "og:title", content: `@${params.username} — MCtech` },
-      { property: "og:description", content: `Portfolio of @${params.username} on MCtech.` },
+      { title: `@${params.username} — OnlyCreators` },
+      { name: "description", content: `Portfolio of @${params.username} on OnlyCreators.` },
+      { property: "og:title", content: `@${params.username} — OnlyCreators` },
+      { property: "og:description", content: `Portfolio of @${params.username} on OnlyCreators.` },
     ],
   }),
   component: Portfolio,

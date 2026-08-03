@@ -10,7 +10,7 @@ import { Crown, Zap, Gem, Sprout, Check, Package, Shield, Star, Sparkles } from 
 import { CREATOR_PLANS, DESIGNER_BADGES, DESIGNER_SLOTS } from "@/lib/mctech";
 
 export const Route = createFileRoute("/_authenticated/store")({
-  head: () => ({ meta: [{ title: "Store — MCtech" }, { name: "description", content: "Memberships, badges, and slots for MCtech." }] }),
+  head: () => ({ meta: [{ title: "Store — OnlyCreators" }, { name: "description", content: "Memberships, badges, and slots for OnlyCreators." }] }),
   component: Store,
 });
 

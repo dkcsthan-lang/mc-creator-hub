@@ -34,9 +34,9 @@ type Designer = { id: string; username: string | null; display_name: string | nu
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MCtech — Minecraft creator services, done properly" },
+      { title: "OnlyCreators — Minecraft creator services, done properly" },
       { name: "description", content: "A curated marketplace for Minecraft creators. Thumbnails, editing, VFX, models, plugins and more — from vetted professional designers." },
-      { property: "og:title", content: "MCtech — Minecraft creator services" },
+      { property: "og:title", content: "OnlyCreators — Minecraft creator services" },
       { property: "og:description", content: "Vetted designers, transparent pricing, secure delivery." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

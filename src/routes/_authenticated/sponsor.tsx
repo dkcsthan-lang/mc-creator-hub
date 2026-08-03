@@ -11,7 +11,7 @@ import { SPONSOR_DURATIONS } from "@/lib/mctech";
 import { Megaphone, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/sponsor")({
-  head: () => ({ meta: [{ title: "Sponsor a banner — MCtech" }] }),
+  head: () => ({ meta: [{ title: "Sponsor a banner — OnlyCreators" }] }),
   component: Sponsor,
 });
 

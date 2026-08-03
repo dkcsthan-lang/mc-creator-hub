@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "Profile — MCtech" }] }),
+  head: () => ({ meta: [{ title: "Profile — OnlyCreators" }] }),
   component: Profile,
 });
 

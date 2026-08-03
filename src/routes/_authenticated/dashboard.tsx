@@ -19,7 +19,7 @@ type Sample = {
 };
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Designer dashboard — MCtech" }, { name: "description", content: "Manage your samples, orders, and sales on MCtech." }] }),
+  head: () => ({ meta: [{ title: "Designer dashboard — OnlyCreators" }, { name: "description", content: "Manage your samples, orders, and sales on OnlyCreators." }] }),
   component: Dashboard,
 });
 

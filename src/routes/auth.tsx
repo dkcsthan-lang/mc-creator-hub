@@ -16,10 +16,10 @@ export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
   head: () => ({
     meta: [
-      { title: "Sign in — MCtech" },
-      { name: "description", content: "Sign in or create an account on MCtech." },
-      { property: "og:title", content: "Sign in — MCtech" },
-      { property: "og:description", content: "Sign in or create an account on MCtech." },
+      { title: "Sign in — OnlyCreators" },
+      { name: "description", content: "Sign in or create an account on OnlyCreators." },
+      { property: "og:title", content: "Sign in — OnlyCreators" },
+      { property: "og:description", content: "Sign in or create an account on OnlyCreators." },
     ],
   }),
   component: AuthPage,
@@ -77,7 +77,7 @@ function AuthPage() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-10">
       <Card className="w-full p-6 glass">
-        <h1 className="text-2xl font-bold neon-gradient-text">Welcome to MCtech</h1>
+        <h1 className="text-2xl font-bold neon-gradient-text">Welcome to OnlyCreators</h1>
         <p className="mb-6 mt-1 text-sm text-muted-foreground">Sign in or create your account.</p>
 
         <Button onClick={google} variant="outline" className="mb-4 w-full">Continue with Google</Button>

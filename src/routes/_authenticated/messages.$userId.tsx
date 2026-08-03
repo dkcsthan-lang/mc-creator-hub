@@ -9,7 +9,7 @@ import { User, Send, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/messages/$userId")({
-  head: () => ({ meta: [{ title: "Chat — MCtech" }] }),
+  head: () => ({ meta: [{ title: "Chat — OnlyCreators" }] }),
   component: Thread,
 });
 

@@ -19,8 +19,8 @@ type Sample = {
 export const Route = createFileRoute("/samples/$id")({
   head: () => ({
     meta: [
-      { title: "Sample — MCtech" },
-      { name: "description", content: "View a designer sample on MCtech." },
+      { title: "Sample — OnlyCreators" },
+      { name: "description", content: "View a designer sample on OnlyCreators." },
     ],
   }),
   component: SampleDetail,

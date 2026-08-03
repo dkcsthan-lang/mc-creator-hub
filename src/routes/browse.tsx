@@ -16,9 +16,9 @@ type Sample = {
 export const Route = createFileRoute("/browse")({
   head: () => ({
     meta: [
-      { title: "Explore services — MCtech" },
-      { name: "description", content: "Browse approved thumbnails, edits, VFX, and more from MCtech designers." },
-      { property: "og:title", content: "Explore services — MCtech" },
+      { title: "Explore services — OnlyCreators" },
+      { name: "description", content: "Browse approved thumbnails, edits, VFX, and more from OnlyCreators designers." },
+      { property: "og:title", content: "Explore services — OnlyCreators" },
       { property: "og:description", content: "Browse approved samples across every category." },
     ],
   }),

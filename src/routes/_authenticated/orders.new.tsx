@@ -14,7 +14,7 @@ import { CATEGORIES, CATEGORY_LABELS } from "@/lib/mctech";
 
 export const Route = createFileRoute("/_authenticated/orders/new")({
   validateSearch: (s) => z.object({ designer: z.string().optional() }).parse(s),
-  head: () => ({ meta: [{ title: "New order — MCtech" }] }),
+  head: () => ({ meta: [{ title: "New order — OnlyCreators" }] }),
   component: NewOrder,
 });
 
