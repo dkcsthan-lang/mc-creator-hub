@@ -124,10 +124,18 @@ function Home() {
           <Button asChild size="lg" className="neon-glow">
             <Link to="/browse"><Compass className="mr-2 h-4 w-4" />Explore services</Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/apply"><Sparkles className="mr-2 h-4 w-4" />Join as a designer</Link>
-          </Button>
+          {!isSeller && (
+            <Button asChild size="lg" variant="outline">
+              <Link to="/apply"><Sparkles className="mr-2 h-4 w-4" />Join as a designer</Link>
+            </Button>
+          )}
+          {isSeller && (
+            <Button asChild size="lg" variant="outline">
+              <Link to="/dashboard"><Sparkles className="mr-2 h-4 w-4" />Your dashboard</Link>
+            </Button>
+          )}
         </div>
+
       </section>
 
       {/* Sponsor banner */}
