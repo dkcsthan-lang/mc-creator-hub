@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SponsorRouteImport } from './routes/sponsor'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApplyRouteImport } from './routes/apply'
@@ -18,7 +19,6 @@ import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as SamplesIdRouteImport } from './routes/samples.$id'
 import { Route as CategoryCatRouteImport } from './routes/category.$cat'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
-import { Route as AuthenticatedSponsorRouteImport } from './routes/_authenticated/sponsor'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -29,6 +29,11 @@ import { Route as AuthenticatedOrdersNewRouteImport } from './routes/_authentica
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
 
+const SponsorRoute = SponsorRouteImport.update({
+  id: '/sponsor',
+  path: '/sponsor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BrowseRoute = BrowseRouteImport.update({
   id: '/browse',
   path: '/browse',
@@ -71,11 +76,6 @@ const CategoryCatRoute = CategoryCatRouteImport.update({
 const AuthenticatedStoreRoute = AuthenticatedStoreRouteImport.update({
   id: '/store',
   path: '/store',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSponsorRoute = AuthenticatedSponsorRouteImport.update({
-  id: '/sponsor',
-  path: '/sponsor',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -131,13 +131,13 @@ export interface FileRoutesByFullPath {
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/sponsor': typeof SponsorRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
-  '/sponsor': typeof AuthenticatedSponsorRoute
   '/store': typeof AuthenticatedStoreRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
@@ -151,13 +151,13 @@ export interface FileRoutesByTo {
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/sponsor': typeof SponsorRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
-  '/sponsor': typeof AuthenticatedSponsorRoute
   '/store': typeof AuthenticatedStoreRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
@@ -173,13 +173,13 @@ export interface FileRoutesById {
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/sponsor': typeof SponsorRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/sponsor': typeof AuthenticatedSponsorRoute
   '/_authenticated/store': typeof AuthenticatedStoreRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
@@ -195,13 +195,13 @@ export interface FileRouteTypes {
     | '/apply'
     | '/auth'
     | '/browse'
+    | '/sponsor'
     | '/admin'
     | '/dashboard'
     | '/messages'
     | '/notifications'
     | '/orders'
     | '/profile'
-    | '/sponsor'
     | '/store'
     | '/category/$cat'
     | '/samples/$id'
@@ -215,13 +215,13 @@ export interface FileRouteTypes {
     | '/apply'
     | '/auth'
     | '/browse'
+    | '/sponsor'
     | '/admin'
     | '/dashboard'
     | '/messages'
     | '/notifications'
     | '/orders'
     | '/profile'
-    | '/sponsor'
     | '/store'
     | '/category/$cat'
     | '/samples/$id'
@@ -236,13 +236,13 @@ export interface FileRouteTypes {
     | '/apply'
     | '/auth'
     | '/browse'
+    | '/sponsor'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/messages'
     | '/_authenticated/notifications'
     | '/_authenticated/orders'
     | '/_authenticated/profile'
-    | '/_authenticated/sponsor'
     | '/_authenticated/store'
     | '/category/$cat'
     | '/samples/$id'
@@ -258,6 +258,7 @@ export interface RootRouteChildren {
   ApplyRoute: typeof ApplyRoute
   AuthRoute: typeof AuthRoute
   BrowseRoute: typeof BrowseRoute
+  SponsorRoute: typeof SponsorRoute
   CategoryCatRoute: typeof CategoryCatRoute
   SamplesIdRoute: typeof SamplesIdRoute
   UUsernameRoute: typeof UUsernameRoute
@@ -265,6 +266,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sponsor': {
+      id: '/sponsor'
+      path: '/sponsor'
+      fullPath: '/sponsor'
+      preLoaderRoute: typeof SponsorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/browse': {
       id: '/browse'
       path: '/browse'
@@ -326,13 +334,6 @@ declare module '@tanstack/react-router' {
       path: '/store'
       fullPath: '/store'
       preLoaderRoute: typeof AuthenticatedStoreRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/sponsor': {
-      id: '/_authenticated/sponsor'
-      path: '/sponsor'
-      fullPath: '/sponsor'
-      preLoaderRoute: typeof AuthenticatedSponsorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -434,7 +435,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedSponsorRoute: typeof AuthenticatedSponsorRoute
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
 }
 
@@ -445,7 +445,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedSponsorRoute: AuthenticatedSponsorRoute,
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
 }
 
@@ -458,6 +457,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApplyRoute: ApplyRoute,
   AuthRoute: AuthRoute,
   BrowseRoute: BrowseRoute,
+  SponsorRoute: SponsorRoute,
   CategoryCatRoute: CategoryCatRoute,
   SamplesIdRoute: SamplesIdRoute,
   UUsernameRoute: UUsernameRoute,
