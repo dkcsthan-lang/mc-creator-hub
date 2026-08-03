@@ -117,35 +117,61 @@ function SampleDetail() {
           <p className="mt-1 text-lg neon-gradient-text font-semibold">₹{sample.price}</p>
 
           <div className="mt-5">
-            <p className="mb-2 text-sm text-muted-foreground">Rate this sample</p>
-            <div className="flex items-center gap-1">
+            <p className="mb-2 text-sm text-muted-foreground">
+              {isOwnSample ? "Community rating" : "Rate this sample"}
+            </p>
+            <div className="flex flex-wrap items-center gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} onClick={() => rate(n)} aria-label={`Rate ${n}`}>
+                <button
+                  key={n}
+                  onClick={() => rate(n)}
+                  disabled={isOwnSample}
+                  aria-label={`Rate ${n}`}
+                  className={isOwnSample ? "cursor-default" : ""}
+                >
                   <Star className={"h-6 w-6 " + (n <= (myRating || Math.round(avgRating.avg)) ? "fill-primary text-primary" : "text-muted-foreground")} />
                 </button>
               ))}
               {avgRating.count > 0 && (
                 <span className="ml-3 text-sm text-muted-foreground">{avgRating.avg.toFixed(1)} · {avgRating.count} rating{avgRating.count === 1 ? "" : "s"}</span>
               )}
+              <Button
+                onClick={toggleLike}
+                disabled={isOwnSample}
+                variant={liked ? "default" : "outline"}
+                size="sm"
+                className={"ml-3 " + (liked ? "neon-glow" : "")}
+              >
+                <Heart className={"mr-1 h-4 w-4 " + (liked ? "fill-current" : "")} />
+                {likes}
+              </Button>
             </div>
+            {isOwnSample && (
+              <p className="mt-2 text-xs text-muted-foreground">This is your own sample — you can't rate, like or report it.</p>
+            )}
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button asChild className="neon-glow">
-              <Link to="/orders/new" search={{ designer: sample.designer_id }}><ShoppingBag className="mr-1 h-4 w-4" />Place order</Link>
-            </Button>
+            {!isOwnSample && (
+              <Button asChild className="neon-glow">
+                <Link to="/orders/new" search={{ designer: sample.designer_id }}><ShoppingBag className="mr-1 h-4 w-4" />Place order</Link>
+              </Button>
+            )}
             <Button asChild variant="outline">
               <Link to="/u/$username" params={{ username: designer?.username ?? "" }}><User className="mr-1 h-4 w-4" />See portfolio</Link>
             </Button>
-            <Dialog open={reportOpen} onOpenChange={setReportOpen}>
-              <DialogTrigger asChild><Button variant="ghost"><Flag className="mr-1 h-4 w-4" />Report designer</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Report designer</DialogTitle></DialogHeader>
-                <Textarea placeholder="Reason..." value={reason} onChange={(e) => setReason(e.target.value)} />
-                <DialogFooter><Button onClick={submitReport}>Submit report</Button></DialogFooter>
-              </DialogContent>
-            </Dialog>
+            {!isOwnSample && (
+              <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+                <DialogTrigger asChild><Button variant="ghost"><Flag className="mr-1 h-4 w-4" />Report designer</Button></DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Report designer</DialogTitle></DialogHeader>
+                  <Textarea placeholder="Reason..." value={reason} onChange={(e) => setReason(e.target.value)} />
+                  <DialogFooter><Button onClick={submitReport}>Submit report</Button></DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
+
         </div>
       </Card>
     </div>
