@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Star, Flag, ShoppingBag, User } from "lucide-react";
+import { Star, Flag, ShoppingBag, User, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/lib/session";
 
