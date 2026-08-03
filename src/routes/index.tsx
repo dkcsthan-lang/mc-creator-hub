@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { DISCORD_INVITE_URL } from "@/lib/mctech";
 import { SponsorBanner } from "@/components/SponsorBanner";
+import { useRoles } from "@/lib/session";
 
 const CATEGORIES = [
   { key: "thumbnail", label: "Thumbnails", desc: "Click-worthy cover art", Icon: ImageIcon },
@@ -46,6 +47,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { isAdmin, isDesigner } = useRoles();
+  const isSeller = isAdmin || isDesigner;
   const [suggestions, setSuggestions] = useState<Sample[]>([]);
   const [trending, setTrending] = useState<Sample[]>([]);
   const [mostLiked, setMostLiked] = useState<Sample[]>([]);
