@@ -2,7 +2,8 @@ import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
+import { useStorageUrl } from "@/components/StorageImage";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, MessageSquare, UserPlus, UserCheck, Package, Star } from "lucide-react";
@@ -38,6 +39,7 @@ function Portfolio() {
   const [avg, setAvg] = useState<{ avg: number; count: number }>({ avg: 0, count: 0 });
   const [following, setFollowing] = useState(false);
   const [followers, setFollowers] = useState(0);
+  const bannerUrl = useStorageUrl(profile?.banner_url);
 
   useEffect(() => {
     if (!username) return;
