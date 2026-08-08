@@ -8,8 +8,8 @@ export function Logo({ className }: { className?: string }) {
       aria-label="OnlyCreators home"
       className={"flex min-w-0 items-center " + (className ?? "")}
     >
-      {/* Mobile: crisp text wordmark — the wide logo image is illegible under ~150px. */}
-      <span className="whitespace-nowrap text-lg font-extrabold tracking-tight neon-gradient-text sm:hidden">
+      {/* Mobile: compact text wordmark — the wide logo image is illegible under ~150px. */}
+      <span className="truncate whitespace-nowrap text-[15px] font-extrabold tracking-tight neon-gradient-text sm:hidden">
         OnlyCreators
       </span>
       <img
@@ -22,4 +22,3 @@ export function Logo({ className }: { className?: string }) {
     </Link>
   );
 }
-
