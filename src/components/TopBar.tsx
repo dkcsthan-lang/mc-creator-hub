@@ -21,9 +21,10 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-40 w-full glass">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4">
+      <div className="mx-auto grid h-16 max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 sm:px-4">
         <Logo />
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -64,10 +65,12 @@ export function TopBar() {
             </DropdownMenu>
           ) : (
             <>
-              <Button asChild variant="ghost"><Link to="/apply"><Sparkles className="mr-1 h-4 w-4" />Apply</Link></Button>
-              <Button asChild variant="outline"><Link to="/browse"><ShoppingBag className="mr-1 h-4 w-4" />Explore</Link></Button>
-              <Button asChild className="neon-glow"><Link to="/auth"><LogIn className="mr-1 h-4 w-4" />Sign in</Link></Button>
+              <Button asChild variant="ghost" className="hidden sm:inline-flex"><Link to="/apply"><Sparkles className="mr-1 h-4 w-4" />Apply</Link></Button>
+              <Button asChild variant="outline" size="icon" className="sm:hidden" aria-label="Explore"><Link to="/browse"><ShoppingBag className="h-4 w-4" /></Link></Button>
+              <Button asChild variant="outline" className="hidden sm:inline-flex"><Link to="/browse"><ShoppingBag className="mr-1 h-4 w-4" />Explore</Link></Button>
+              <Button asChild size="sm" className="neon-glow sm:h-10 sm:px-4"><Link to="/auth"><LogIn className="mr-1 h-4 w-4" />Sign in</Link></Button>
             </>
+
           )}
         </div>
       </div>
