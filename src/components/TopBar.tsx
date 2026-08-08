@@ -21,9 +21,10 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-40 w-full glass">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4">
+      <div className="mx-auto grid h-16 max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 sm:px-4">
         <Logo />
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
