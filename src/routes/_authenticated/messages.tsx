@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export const Route = createFileRoute("/_authenticated/messages")({
   head: () => ({ meta: [{ title: "Messages — OnlyCreators" }] }),
@@ -13,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/messages")({
 });
 
 type Thread = { other_id: string; last_body: string; last_at: string; unread: number };
-type Profile = { id: string; username: string | null; display_name: string | null; avatar_url: string | null };
+type Profile = { id: string; username: string | null; display_name: string | null; avatar_url: string | null; gif_avatar_url: string | null; bio: string | null };
 
 function MessagesList() {
   const { user } = useSession();
@@ -45,7 +44,7 @@ function MessagesList() {
     }
     const arr = Array.from(map.values());
     if (arr.length) {
-      const { data: profs } = await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", arr.map((t) => t.other_id));
+      const { data: profs } = await supabase.from("profiles").select("id,username,display_name,avatar_url,gif_avatar_url,bio").in("id", arr.map((t) => t.other_id));
       const byId = new Map(((profs ?? []) as Profile[]).map((p) => [p.id, p]));
       setThreads(arr.map((t) => ({ ...t, profile: byId.get(t.other_id) })));
     } else setThreads([]);
@@ -63,7 +62,7 @@ function MessagesList() {
 
   useEffect(() => {
     if (!q.trim()) return setResults([]);
-    supabase.from("profiles").select("id,username,display_name,avatar_url").ilike("username", `%${q}%`).limit(10)
+    supabase.from("profiles").select("id,username,display_name,avatar_url,gif_avatar_url,bio").ilike("username", `%${q}%`).limit(10)
       .then(({ data }) => setResults((data as Profile[]) ?? []));
   }, [q]);
 
@@ -78,10 +77,10 @@ function MessagesList() {
           <div className="mt-3 space-y-1">
             {results.map((p) => (
               <Link key={p.id} to="/messages/$userId" params={{ userId: p.id }} className="flex items-center gap-3 rounded-md p-2 hover:bg-muted/40">
-                <Avatar className="h-8 w-8"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback><User className="h-3 w-3" /></AvatarFallback></Avatar>
-                <div>
-                  <p className="text-sm">{p.display_name || p.username}</p>
-                  <p className="text-xs text-muted-foreground">@{p.username}</p>
+                <UserAvatar src={p.avatar_url} gifSrc={p.gif_avatar_url} className="h-8 w-8" iconClassName="h-3 w-3" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm">{p.display_name || p.username}</p>
+                  <p className="truncate text-xs text-muted-foreground">@{p.username}{p.bio ? " · " + p.bio : ""}</p>
                 </div>
               </Link>
             ))}
@@ -96,7 +95,7 @@ function MessagesList() {
           {threads.map((t) => (
             <Link key={t.other_id} to="/messages/$userId" params={{ userId: t.other_id }} className="block">
               <Card className="flex items-center gap-3 p-3 glass transition hover:neon-glow">
-                <Avatar className="h-10 w-10"><AvatarImage src={t.profile?.avatar_url ?? undefined} /><AvatarFallback><User className="h-4 w-4" /></AvatarFallback></Avatar>
+                <UserAvatar src={t.profile?.avatar_url} gifSrc={t.profile?.gif_avatar_url} className="h-10 w-10" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{t.profile?.display_name || t.profile?.username || "Unknown"}</p>
                   <p className="line-clamp-1 text-xs text-muted-foreground">{t.last_body}</p>

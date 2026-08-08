@@ -2,6 +2,7 @@ import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -107,7 +108,7 @@ function SampleDetail() {
         <SampleImage src={sample.image_url} alt={sample.title} className="max-h-[520px] w-full object-cover" />
         <div className="p-5">
           <div className="mb-4 flex items-center gap-3">
-            <Avatar><AvatarImage src={designer?.avatar_url ?? undefined} /><AvatarFallback><User className="h-4 w-4" /></AvatarFallback></Avatar>
+            <UserAvatar src={designer?.avatar_url} />
             <div>
               <p className="text-sm text-muted-foreground">Designer</p>
               <p className="font-medium">{designer?.display_name || designer?.username || "Unknown"}</p>

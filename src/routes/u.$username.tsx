@@ -2,7 +2,8 @@ import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
+import { useStorageUrl } from "@/components/StorageImage";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, MessageSquare, UserPlus, UserCheck, Package, Star } from "lucide-react";
@@ -38,6 +39,7 @@ function Portfolio() {
   const [avg, setAvg] = useState<{ avg: number; count: number }>({ avg: 0, count: 0 });
   const [following, setFollowing] = useState(false);
   const [followers, setFollowers] = useState(0);
+  const bannerUrl = useStorageUrl(profile?.banner_url);
 
   useEffect(() => {
     if (!username) return;
@@ -95,20 +97,24 @@ function Portfolio() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      {/* Banner */}
-      <div className="relative mb-6 h-40 overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-primary/20 via-background to-background sm:h-56">
-        {profile.banner_url && <img src={profile.banner_url} alt="" className="h-full w-full object-cover" />}
-      </div>
+      {/* Banner — only rendered when the user actually uploaded one */}
+      {bannerUrl && (
+        <div className="mb-6 h-40 overflow-hidden rounded-xl border border-border/60 sm:h-56">
+          <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
+        </div>
+      )}
 
       {/* Identity + actions */}
-      <div className="-mt-16 flex flex-col gap-4 px-2 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex items-end gap-4">
-          <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-            <AvatarImage src={profile.avatar_url ?? undefined} />
-            <AvatarFallback><User /></AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="text-2xl font-bold">{profile.display_name || profile.username}</h1>
+      <div className={"flex flex-col gap-4 px-2 sm:flex-row sm:items-end sm:justify-between " + (bannerUrl ? "-mt-16" : "")}>
+        <div className="flex min-w-0 items-end gap-4">
+          <UserAvatar
+            src={profile.avatar_url}
+            gifSrc={(profile as any).gif_avatar_url}
+            className="h-24 w-24 shrink-0 border-4 border-background shadow-lg"
+            iconClassName="h-8 w-8"
+          />
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-bold">{profile.display_name || profile.username}</h1>
             <p className="text-sm text-muted-foreground">@{profile.username}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary ring-1 ring-primary/30">
@@ -116,6 +122,9 @@ function Portfolio() {
               </span>
               <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{level.label}</span>
             </div>
+            {profile.bio && (
+              <p className="mt-2 max-w-md whitespace-pre-wrap text-sm text-muted-foreground">{profile.bio}</p>
+            )}
           </div>
         </div>
 
@@ -134,7 +143,7 @@ function Portfolio() {
         )}
       </div>
 
-      {profile.bio && <p className="mt-4 max-w-2xl text-sm text-muted-foreground">{profile.bio}</p>}
+
 
       {/* Stats */}
       <div className="mt-6 grid grid-cols-3 gap-3">

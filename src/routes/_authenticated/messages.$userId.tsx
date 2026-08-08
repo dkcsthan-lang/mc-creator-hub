@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Send, ArrowLeft } from "lucide-react";
+import { UserAvatar } from "@/components/UserAvatar";
+import { useStorageUrl } from "@/components/StorageImage";
+import { Send, ArrowLeft, Paperclip, ImagePlus, X, FileDown } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/messages/$userId")({
@@ -13,8 +14,34 @@ export const Route = createFileRoute("/_authenticated/messages/$userId")({
   component: Thread,
 });
 
-type Msg = { id: string; sender_id: string; recipient_id: string; body: string; created_at: string; read_at: string | null };
-type Profile = { id: string; username: string | null; display_name: string | null; avatar_url: string | null };
+type Msg = { id: string; sender_id: string; recipient_id: string; body: string; attachment_path: string | null; created_at: string; read_at: string | null };
+type Profile = { id: string; username: string | null; display_name: string | null; avatar_url: string | null; gif_avatar_url: string | null; bio: string | null };
+
+const IMAGE_RE = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
+
+function Attachment({ path, mine }: { path: string; mine: boolean }) {
+  const url = useStorageUrl(path);
+  const name = path.split("/").pop() ?? "file";
+  if (!url) return null;
+  if (IMAGE_RE.test(name)) {
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="mt-1 block">
+        <img src={url} alt={name} className="max-h-56 w-full rounded-lg object-cover" loading="lazy" />
+      </a>
+    );
+  }
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className={"mt-1 flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs underline-offset-2 hover:underline " + (mine ? "bg-primary-foreground/15" : "bg-background/60")}
+    >
+      <FileDown className="h-4 w-4 shrink-0" />
+      <span className="truncate">{name.replace(/^\d+-/, "")}</span>
+    </a>
+  );
+}
 
 function Thread() {
   const { userId } = useParams({ from: "/_authenticated/messages/$userId" });
@@ -22,13 +49,16 @@ function Thread() {
   const [other, setOther] = useState<Profile | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const imageInput = useRef<HTMLInputElement>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   async function load() {
     if (!user) return;
     const [{ data: p }, { data: m }] = await Promise.all([
-      supabase.from("profiles").select("id,username,display_name,avatar_url").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("id,username,display_name,avatar_url,gif_avatar_url,bio").eq("id", userId).maybeSingle(),
       supabase.from("messages")
         .select("*")
         .or(`and(sender_id.eq.${user.id},recipient_id.eq.${userId}),and(sender_id.eq.${userId},recipient_id.eq.${user.id})`)
@@ -60,24 +90,41 @@ function Thread() {
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    if (!user || !text.trim()) return;
+    if (!user) return;
+    if (!text.trim() && !file) return;
     setSending(true);
     const body = text.trim();
-    setText("");
-    const { data, error } = await supabase.from("messages").insert({ sender_id: user.id, recipient_id: userId, body }).select("*").single();
-    setSending(false);
-    if (error) return toast.error(error.message);
-    if (data) setMsgs((prev) => (prev.some((x) => x.id === (data as Msg).id) ? prev : [...prev, data as Msg]));
+    try {
+      let attachment_path: string | null = null;
+      if (file) {
+        if (file.size > 20 * 1024 * 1024) throw new Error("File must be under 20MB");
+        const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
+        const up = await supabase.storage.from("chat-files").upload(path, file);
+        if (up.error) throw new Error(up.error.message);
+        attachment_path = path;
+      }
+      const { data, error } = await supabase.from("messages")
+        .insert({ sender_id: user.id, recipient_id: userId, body: body || (file ? "📎 Attachment" : ""), attachment_path })
+        .select("*").single();
+      if (error) throw new Error(error.message);
+      setText("");
+      setFile(null);
+      if (data) setMsgs((prev) => (prev.some((x) => x.id === (data as Msg).id) ? prev : [...prev, data as Msg]));
+    } catch (err: any) {
+      toast.error(err?.message ?? "Could not send message");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-2xl flex-col px-4 py-4">
-      <div className="mb-3 flex items-center gap-3">
+      <div className="mb-3 grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3">
         <Button asChild variant="ghost" size="icon"><Link to="/messages"><ArrowLeft className="h-4 w-4" /></Link></Button>
-        <Avatar className="h-10 w-10"><AvatarImage src={other?.avatar_url ?? undefined} /><AvatarFallback><User /></AvatarFallback></Avatar>
-        <div>
-          <p className="text-sm font-semibold">{other?.display_name || other?.username || "Chat"}</p>
-          {other?.username && <Link to="/u/$username" params={{ username: other.username }} className="text-xs text-muted-foreground hover:text-primary">@{other.username}</Link>}
+        <UserAvatar src={other?.avatar_url} gifSrc={other?.gif_avatar_url} className="h-10 w-10" />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{other?.display_name || other?.username || "Chat"}</p>
+          {other?.username && <Link to="/u/$username" params={{ username: other.username }} className="block truncate text-xs text-muted-foreground hover:text-primary">@{other.username}</Link>}
         </div>
       </div>
 
@@ -88,7 +135,8 @@ function Thread() {
           return (
             <div key={m.id} className={"flex " + (mine ? "justify-end" : "justify-start")}>
               <div className={"max-w-[75%] rounded-2xl px-3 py-2 text-sm " + (mine ? "bg-primary text-primary-foreground" : "bg-muted")}>
-                <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
+                {m.attachment_path && <Attachment path={`chat-files/${m.attachment_path}`} mine={mine} />}
                 <p className={"mt-1 text-[10px] " + (mine ? "text-primary-foreground/70" : "text-muted-foreground")}>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
               </div>
             </div>
@@ -97,9 +145,27 @@ function Thread() {
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={send} className="mt-3 flex gap-2">
+      {file && (
+        <div className="mt-2 flex items-center gap-2 rounded-lg border border-border/60 bg-card/40 px-3 py-2 text-xs">
+          <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <span className="truncate">{file.name}</span>
+          <button type="button" onClick={() => setFile(null)} className="ml-auto text-muted-foreground hover:text-destructive" aria-label="Remove attachment">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      <form onSubmit={send} className="mt-3 flex items-center gap-2">
+        <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        <input ref={fileInput} type="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        <Button type="button" variant="outline" size="icon" aria-label="Send image" onClick={() => imageInput.current?.click()}>
+          <ImagePlus className="h-4 w-4" />
+        </Button>
+        <Button type="button" variant="outline" size="icon" aria-label="Attach file" onClick={() => fileInput.current?.click()}>
+          <Paperclip className="h-4 w-4" />
+        </Button>
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message..." />
-        <Button type="submit" disabled={sending || !text.trim()} className="neon-glow"><Send className="h-4 w-4" /></Button>
+        <Button type="submit" disabled={sending || (!text.trim() && !file)} className="neon-glow"><Send className="h-4 w-4" /></Button>
       </form>
     </div>
   );

@@ -4,12 +4,14 @@ import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Menu } from "lucide-react";
-import { useRoles, useSession } from "@/lib/session";
+import { useProfile, useRoles, useSession } from "@/lib/session";
+import { UserAvatar } from "@/components/UserAvatar";
 import { supabase } from "@/integrations/supabase/client";
 
 export function TopBar() {
   const { user } = useSession();
   const { isAdmin, isDesigner } = useRoles();
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   async function signOut() {
@@ -28,13 +30,25 @@ export function TopBar() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" aria-label="Menu">
-                  <Menu className="h-5 w-5" />
+                <Button variant="outline" className="h-10 gap-2 px-2" aria-label="Menu">
+                  <UserAvatar
+                    src={profile?.avatar_url}
+                    gifSrc={profile?.gif_avatar_url}
+                    className="h-7 w-7 ring-1 ring-primary/40"
+                    iconClassName="h-3.5 w-3.5"
+                  />
+                  <Menu className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel className="neon-gradient-text">
-                  {role === "admin" ? "Admin" : role === "designer" ? "Designer" : "Creator"} menu
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <UserAvatar src={profile?.avatar_url} gifSrc={profile?.gif_avatar_url} className="h-9 w-9" />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold">{profile?.display_name || profile?.username || "Your account"}</span>
+                    <span className="block truncate text-xs font-normal text-muted-foreground">
+                      {role === "admin" ? "Admin" : role === "designer" ? "Designer" : "Creator"}
+                    </span>
+                  </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild><Link to="/notifications"><Bell className="mr-2 h-4 w-4" />Notifications</Link></DropdownMenuItem>
