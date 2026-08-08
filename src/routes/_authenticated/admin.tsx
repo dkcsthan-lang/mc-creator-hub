@@ -2,6 +2,7 @@ import { SampleImage } from "@/components/SampleImage";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useRoles } from "@/lib/session";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -315,7 +316,7 @@ function UsersPanel() {
         {rows.map((u) => (
           <Card key={u.id} className="flex items-center justify-between gap-3 p-3 glass">
             <div className="flex min-w-0 items-center gap-3">
-              <Avatar className="h-9 w-9 shrink-0"><AvatarImage src={u.avatar_url ?? undefined} /><AvatarFallback><User className="h-3 w-3" /></AvatarFallback></Avatar>
+              <UserAvatar src={u.avatar_url} className="h-9 w-9 shrink-0" iconClassName="h-3 w-3" />
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{u.display_name || u.username}</p>
                 <p className="truncate text-xs text-muted-foreground">@{u.username} · joined {new Date(u.created_at).toLocaleDateString()}</p>

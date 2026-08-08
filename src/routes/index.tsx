@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { UserAvatar } from "@/components/UserAvatar";
 import { SampleImage } from "@/components/SampleImage";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -164,7 +165,7 @@ function Home() {
             {popularDesigners.map((d) => (
               <Link key={d.id} to="/u/$username" params={{ username: d.username ?? "" }} className="group">
                 <Card className="flex flex-col items-center gap-2 p-4 text-center glass transition hover:neon-glow">
-                  <Avatar className="h-14 w-14"><AvatarImage src={d.avatar_url ?? undefined} /><AvatarFallback><User /></AvatarFallback></Avatar>
+                  <UserAvatar src={d.avatar_url} className="h-14 w-14" iconClassName="h-5 w-5" />
                   <p className="line-clamp-1 text-sm font-medium">{d.display_name || d.username}</p>
                   <p className="text-[10px] text-muted-foreground">{d.designer_tag || "Designer"}</p>
                 </Card>
@@ -180,7 +181,7 @@ function Home() {
           <SectionHeader eyebrow="Spotlight" title="Designer of the month" Icon={Crown} />
           <Link to="/u/$username" params={{ username: designerOfMonth.username ?? "" }}>
             <Card className="flex items-center gap-4 p-6 glass transition hover:neon-glow">
-              <Avatar className="h-16 w-16"><AvatarImage src={designerOfMonth.avatar_url ?? undefined} /><AvatarFallback><User /></AvatarFallback></Avatar>
+              <UserAvatar src={designerOfMonth.avatar_url} className="h-16 w-16" iconClassName="h-6 w-6" />
               <div>
                 <p className="text-lg font-semibold">{designerOfMonth.display_name || designerOfMonth.username}</p>
                 <p className="text-xs text-muted-foreground">{designerOfMonth.designer_tag || "Designer"} · {designerOfMonth.completed_orders} orders completed</p>
