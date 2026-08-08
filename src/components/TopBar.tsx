@@ -65,10 +65,12 @@ export function TopBar() {
             </DropdownMenu>
           ) : (
             <>
-              <Button asChild variant="ghost"><Link to="/apply"><Sparkles className="mr-1 h-4 w-4" />Apply</Link></Button>
-              <Button asChild variant="outline"><Link to="/browse"><ShoppingBag className="mr-1 h-4 w-4" />Explore</Link></Button>
-              <Button asChild className="neon-glow"><Link to="/auth"><LogIn className="mr-1 h-4 w-4" />Sign in</Link></Button>
+              <Button asChild variant="ghost" className="hidden sm:inline-flex"><Link to="/apply"><Sparkles className="mr-1 h-4 w-4" />Apply</Link></Button>
+              <Button asChild variant="outline" size="icon" className="sm:hidden" aria-label="Explore"><Link to="/browse"><ShoppingBag className="h-4 w-4" /></Link></Button>
+              <Button asChild variant="outline" className="hidden sm:inline-flex"><Link to="/browse"><ShoppingBag className="mr-1 h-4 w-4" />Explore</Link></Button>
+              <Button asChild size="sm" className="neon-glow sm:h-10 sm:px-4"><Link to="/auth"><LogIn className="mr-1 h-4 w-4" />Sign in</Link></Button>
             </>
+
           )}
         </div>
       </div>
