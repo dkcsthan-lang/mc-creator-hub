@@ -94,6 +94,10 @@ function Portfolio() {
 
   if (!profile) return <div className="p-10 text-center text-muted-foreground">Loading...</div>;
 
+  const isDesigner = !!profile.designer_tag || (profile.allowed_categories?.length ?? 0) > 0 || samples.length > 0;
+  if (!isDesigner) return <CreatorProfile profile={profile as unknown as CreatorProfileData} />;
+
+
   const level = levelFromCompleted(profile.completed_orders ?? 0);
   const isSelf = user?.id === profile.id;
 
