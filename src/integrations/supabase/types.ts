@@ -280,8 +280,12 @@ export type Database = {
           id: string
           is_banned: boolean
           membership: string
+          orders_placed: number
+          total_spent: number
           updated_at: string
           username: string | null
+          value_cycles: number
+          value_points: number
           years_experience: number | null
         }
         Insert: {
@@ -297,8 +301,12 @@ export type Database = {
           id: string
           is_banned?: boolean
           membership?: string
+          orders_placed?: number
+          total_spent?: number
           updated_at?: string
           username?: string | null
+          value_cycles?: number
+          value_points?: number
           years_experience?: number | null
         }
         Update: {
@@ -314,8 +322,12 @@ export type Database = {
           id?: string
           is_banned?: boolean
           membership?: string
+          orders_placed?: number
+          total_spent?: number
           updated_at?: string
           username?: string | null
+          value_cycles?: number
+          value_points?: number
           years_experience?: number | null
         }
         Relationships: []
