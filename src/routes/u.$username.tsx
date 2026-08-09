@@ -10,6 +10,7 @@ import { User, MessageSquare, UserPlus, UserCheck, Package, Star } from "lucide-
 import { useSession } from "@/lib/session";
 import { toast } from "sonner";
 import { levelFromCompleted } from "@/lib/mctech";
+import { CreatorProfile, type CreatorProfileData } from "@/components/CreatorProfile";
 
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
@@ -27,6 +28,8 @@ type Profile = {
   id: string; username: string | null; display_name: string | null; bio: string | null;
   avatar_url: string | null; banner_url: string | null; designer_tag: string | null;
   years_experience: number | null; completed_orders: number;
+  allowed_categories?: string[] | null; membership?: string; created_at?: string;
+  orders_placed?: number; total_spent?: number; value_points?: number; value_cycles?: number;
 };
 type Sample = { id: string; title: string; image_url: string; price: number };
 
@@ -91,6 +94,10 @@ function Portfolio() {
   }
 
   if (!profile) return <div className="p-10 text-center text-muted-foreground">Loading...</div>;
+
+  const isDesigner = !!profile.designer_tag || (profile.allowed_categories?.length ?? 0) > 0 || samples.length > 0;
+  if (!isDesigner) return <CreatorProfile profile={profile as unknown as CreatorProfileData} />;
+
 
   const level = levelFromCompleted(profile.completed_orders ?? 0);
   const isSelf = user?.id === profile.id;
