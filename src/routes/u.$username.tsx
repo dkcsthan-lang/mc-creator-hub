@@ -10,6 +10,7 @@ import { User, MessageSquare, UserPlus, UserCheck, Package, Star } from "lucide-
 import { useSession } from "@/lib/session";
 import { toast } from "sonner";
 import { levelFromCompleted } from "@/lib/mctech";
+import { CreatorProfile, type CreatorProfileData } from "@/components/CreatorProfile";
 
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
