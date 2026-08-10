@@ -249,12 +249,13 @@ function BadgeCard({ badge, owned, pending, onBuy }: { badge: any; owned: boolea
         ))}
       </ul>
       <Button
-        disabled={owned || badge.price === 0}
+        disabled={owned || pending || badge.price === 0}
         onClick={onBuy}
         className="mt-5 w-full neon-glow"
       >
-        {badge.price === 0 ? "Included" : owned ? "Owned" : `Buy ${badge.label}`}
+        {badge.price === 0 ? "Included" : owned ? "Owned" : pending ? "Awaiting approval" : `Buy ${badge.label}`}
       </Button>
+
     </Card>
   );
 }
