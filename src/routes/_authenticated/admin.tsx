@@ -29,7 +29,7 @@ function Admin() {
   useEffect(() => {
     if (!isAdmin) return;
     (async () => {
-      const [u, d, apps, s, o, r, comp, sampAll] = await Promise.all([
+      const [u, d, apps, s, o, r, comp, sampAll, sp, pr, prPaid] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "designer"),
         supabase.from("designer_applications").select("*", { count: "exact", head: true }).eq("status", "pending"),
@@ -38,8 +38,12 @@ function Admin() {
         supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "open"),
         supabase.from("orders").select("price").in("status", ["paid", "completed"]),
         supabase.from("samples").select("*", { count: "exact", head: true }),
+        supabase.from("sponsor_ads").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("purchase_requests").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("purchase_requests").select("price").eq("status", "approved"),
       ]);
-      const revenue = ((comp.data as any[]) ?? []).reduce((a, b) => a + (b.price ?? 0), 0);
+      const orderRevenue = ((comp.data as any[]) ?? []).reduce((a, b) => a + (b.price ?? 0), 0);
+      const storeRevenue = ((prPaid.data as any[]) ?? []).reduce((a, b) => a + (b.price ?? 0), 0);
       setStats({
         users: u.count ?? 0,
         designers: d.count ?? 0,
@@ -47,9 +51,12 @@ function Admin() {
         pending_samples: s.count ?? 0,
         open_orders: o.count ?? 0,
         open_reports: r.count ?? 0,
-        revenue,
+        revenue: orderRevenue + storeRevenue,
         total_samples: sampAll.count ?? 0,
+        pending_sponsors: sp.count ?? 0,
+        pending_payments: pr.count ?? 0,
       });
+
     })();
   }, [isAdmin]);
 
