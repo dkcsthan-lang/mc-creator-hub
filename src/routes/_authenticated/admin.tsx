@@ -351,3 +351,246 @@ function UsersPanel() {
     </>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Manage sponsors
+// ---------------------------------------------------------------------------
+type SponsorRow = {
+  id: string; user_id: string; title: string; destination_url: string; image_path: string;
+  duration_days: number; price: number; status: string; gif_enabled: boolean; created_at: string;
+  expires_at: string;
+};
+
+function SponsorsPanel() {
+  const [rows, setRows] = useState<SponsorRow[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+
+  async function load() {
+    const { data } = await supabase
+      .from("sponsor_ads")
+      .select("*")
+      .neq("status", "draft")
+      .order("created_at", { ascending: false });
+    const list = ((data as any) ?? []) as SponsorRow[];
+    setRows(list);
+    const ids = [...new Set(list.map((r) => r.user_id))];
+    if (ids.length) {
+      const { data: p } = await supabase.from("profiles").select("id,username,display_name").in("id", ids);
+      const map: Record<string, string> = {};
+      for (const u of ((p as any) ?? []) as any[]) map[u.id] = u.display_name || u.username || "user";
+      setNames(map);
+    }
+  }
+  useEffect(() => { load(); }, []);
+
+  async function decide(row: SponsorRow, approve: boolean) {
+    const expires = new Date(Date.now() + row.duration_days * 86400_000).toISOString();
+    const { error } = await supabase
+      .from("sponsor_ads")
+      .update(
+        approve
+          ? ({ status: "active", starts_at: new Date().toISOString(), expires_at: expires } as any)
+          : ({ status: "rejected" } as any),
+      )
+      .eq("id", row.id);
+    if (error) return toast.error(error.message);
+    await supabase.from("notifications").insert({
+      user_id: row.user_id,
+      type: "sponsor",
+      title: approve ? "Sponsorship approved" : "Sponsorship rejected",
+      body: approve
+        ? `Your banner "${row.title}" is now live on the homepage for ${row.duration_days} day(s).`
+        : `Your banner "${row.title}" was not approved. Contact support if you already paid.`,
+      link: "/",
+    } as any);
+    toast.success(approve ? "Sponsor approved & live" : "Sponsor rejected");
+    load();
+  }
+
+  const pending = rows.filter((r) => r.status === "pending");
+  const others = rows.filter((r) => r.status !== "pending");
+
+  return (
+    <>
+      <h2 className="mb-1 text-2xl font-bold neon-gradient-text">Manage sponsors</h2>
+      <p className="mb-6 text-xs text-muted-foreground">
+        Approve a banner only after you have confirmed the UPI payment.
+      </p>
+
+      {pending.length === 0 && (
+        <Card className="mb-6 p-6 text-center glass"><p className="text-sm text-muted-foreground">No sponsorship requests waiting.</p></Card>
+      )}
+
+      <div className="space-y-4">
+        {pending.map((r) => (
+          <Card key={r.id} className="overflow-hidden glass">
+            <div className="aspect-video w-full bg-muted/20">
+              <StorageImage src={r.image_path} bucket="sponsors" alt={r.title} className="h-full w-full object-cover" />
+            </div>
+            <div className="space-y-2 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{r.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    by {names[r.user_id] ?? "user"} · {r.duration_days} day(s){r.gif_enabled ? " · GIF add-on" : ""}
+                  </p>
+                  <a href={r.destination_url} target="_blank" rel="noreferrer noopener" className="truncate text-xs text-primary underline">
+                    {r.destination_url}
+                  </a>
+                </div>
+                <p className="shrink-0 text-lg font-bold neon-gradient-text">₹{r.price}</p>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <Button size="sm" className="neon-glow" onClick={() => decide(r, true)}>Payment received — approve</Button>
+                <Button size="sm" variant="outline" onClick={() => decide(r, false)}>Reject</Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {others.length > 0 && (
+        <>
+          <h3 className="mb-3 mt-8 text-sm font-semibold text-muted-foreground">History</h3>
+          <div className="space-y-2">
+            {others.map((r) => (
+              <Card key={r.id} className="flex items-center justify-between p-3 glass">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{r.title}</p>
+                  <p className="text-xs text-muted-foreground">{names[r.user_id] ?? "user"} · ₹{r.price}</p>
+                </div>
+                <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-xs capitalize text-muted-foreground">{r.status}</span>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Payment management (store purchases)
+// ---------------------------------------------------------------------------
+type PurchaseRow = {
+  id: string; user_id: string; buyer_role: string; item_type: string; item_key: string;
+  item_label: string; price: number; status: string; created_at: string;
+};
+
+function PaymentsPanel() {
+  const [rows, setRows] = useState<PurchaseRow[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+
+  async function load() {
+    const { data } = await supabase
+      .from("purchase_requests")
+      .select("*")
+      .neq("status", "draft")
+      .order("created_at", { ascending: false });
+    const list = ((data as any) ?? []) as PurchaseRow[];
+    setRows(list);
+    const ids = [...new Set(list.map((r) => r.user_id))];
+    if (ids.length) {
+      const { data: p } = await supabase.from("profiles").select("id,username,display_name").in("id", ids);
+      const map: Record<string, string> = {};
+      for (const u of ((p as any) ?? []) as any[]) map[u.id] = u.display_name || u.username || "user";
+      setNames(map);
+    }
+  }
+  useEffect(() => { load(); }, []);
+
+  async function grant(row: PurchaseRow) {
+    if (row.buyer_role === "designer") {
+      const slotPack = DESIGNER_SLOTS.find((s) => s.key === row.item_key);
+      if (slotPack) {
+        const { data: cur } = await supabase.from("designer_slots").select("total_slots").eq("user_id", row.user_id).maybeSingle();
+        const base = (cur as any)?.total_slots ?? DEFAULT_DESIGNER_SLOTS;
+        const next = slotPack.count >= 9999 ? 9999 : base + slotPack.count;
+        await supabase.from("designer_slots").upsert({ user_id: row.user_id, total_slots: next } as any, { onConflict: "user_id" });
+      } else if (BADGE_META[row.item_key]) {
+        await supabase.from("profiles").update({ designer_badge: row.item_key } as any).eq("id", row.user_id);
+        const extra = BADGE_META[row.item_key].slots;
+        const { data: cur } = await supabase.from("designer_slots").select("total_slots").eq("user_id", row.user_id).maybeSingle();
+        const base = (cur as any)?.total_slots ?? DEFAULT_DESIGNER_SLOTS;
+        const next = extra >= 9999 ? 9999 : Math.max(base, DEFAULT_DESIGNER_SLOTS + extra);
+        await supabase.from("designer_slots").upsert({ user_id: row.user_id, total_slots: next } as any, { onConflict: "user_id" });
+      }
+    } else {
+      await supabase.from("profiles").update({ membership: row.item_key } as any).eq("id", row.user_id);
+    }
+  }
+
+  async function decide(row: PurchaseRow, approve: boolean) {
+    const { error } = await supabase
+      .from("purchase_requests")
+      .update({ status: approve ? "approved" : "rejected" } as any)
+      .eq("id", row.id);
+    if (error) return toast.error(error.message);
+    if (approve) await grant(row);
+    await supabase.from("notifications").insert({
+      user_id: row.user_id,
+      type: "purchase",
+      title: approve ? "Purchase approved" : "Purchase rejected",
+      body: approve
+        ? `${row.item_label} is now active on your account.`
+        : `Your ${row.item_label} purchase was rejected. Contact support if you already paid.`,
+      link: "/store",
+    } as any);
+    toast.success(approve ? "Approved & granted" : "Rejected");
+    load();
+  }
+
+  const pending = rows.filter((r) => r.status === "pending");
+  const others = rows.filter((r) => r.status !== "pending");
+
+  return (
+    <>
+      <h2 className="mb-1 text-2xl font-bold neon-gradient-text">Payment management</h2>
+      <p className="mb-6 text-xs text-muted-foreground">Store purchases waiting for payment confirmation.</p>
+
+      {pending.length === 0 && (
+        <Card className="mb-6 p-6 text-center glass"><p className="text-sm text-muted-foreground">No purchase requests waiting.</p></Card>
+      )}
+
+      <div className="space-y-3">
+        {pending.map((r) => (
+          <Card key={r.id} className="p-4 glass">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                  {r.buyer_role === "designer" ? "Designer" : "Creator"} · {r.item_type}
+                </p>
+                <p className="truncate font-semibold">{r.item_label}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {names[r.user_id] ?? "user"} · {new Date(r.created_at).toLocaleString()}
+                </p>
+              </div>
+              <p className="shrink-0 text-lg font-bold neon-gradient-text">₹{r.price}</p>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <Button size="sm" className="neon-glow" onClick={() => decide(r, true)}>Payment received — approve</Button>
+              <Button size="sm" variant="outline" onClick={() => decide(r, false)}>Reject</Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {others.length > 0 && (
+        <>
+          <h3 className="mb-3 mt-8 text-sm font-semibold text-muted-foreground">History</h3>
+          <div className="space-y-2">
+            {others.map((r) => (
+              <Card key={r.id} className="flex items-center justify-between p-3 glass">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{r.item_label}</p>
+                  <p className="text-xs text-muted-foreground">{names[r.user_id] ?? "user"} · ₹{r.price}</p>
+                </div>
+                <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-xs capitalize text-muted-foreground">{r.status}</span>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  );
+}
