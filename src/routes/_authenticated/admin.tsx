@@ -101,12 +101,15 @@ function Admin() {
       </div>
 
       {/* Action cards */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <ActionCard title="Manage users" desc="Recent signups, ban & unban" Icon={Users} count={stats.users ?? 0} onClick={() => setView("users")} />
         <ActionCard title="Applications" desc="Review pending designer applications" Icon={FileCheck} count={stats.pending_apps ?? 0} onClick={() => setView("apps")} highlight={(stats.pending_apps ?? 0) > 0} />
         <ActionCard title="Reports" desc="Open user reports" Icon={Flag} count={stats.open_reports ?? 0} onClick={() => setView("reports")} highlight={(stats.open_reports ?? 0) > 0} />
         <ActionCard title="Samples" desc="Approved, pending, rejected" Icon={Shield} count={stats.pending_samples ?? 0} onClick={() => setView("samples")} />
+        <ActionCard title="Manage sponsors" desc="Approve paid homepage banners" Icon={Megaphone} count={stats.pending_sponsors ?? 0} onClick={() => setView("sponsors")} highlight={(stats.pending_sponsors ?? 0) > 0} />
+        <ActionCard title="Payment management" desc="Approve store purchases" Icon={Wallet} count={stats.pending_payments ?? 0} onClick={() => setView("payments")} highlight={(stats.pending_payments ?? 0) > 0} />
       </div>
+
     </div>
   );
 }
