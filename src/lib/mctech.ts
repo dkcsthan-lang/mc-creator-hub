@@ -203,3 +203,56 @@ export const SPONSOR_DURATIONS = [
   { key: "2w", label: "2 weeks", price: 7000, days: 14 },
   { key: "1mo", label: "1 month", price: 15000, days: 30 },
 ] as const;
+
+// -----------------------------
+// Payments
+// -----------------------------
+export const SPONSOR_GIF_ADDON_PRICE = 100;
+export const DEFAULT_DESIGNER_SLOTS = 5;
+
+export type BadgeKey = "designer_badge" | "rich_badge" | "goat_badge" | "exclusive_badge";
+
+export const BADGE_META: Record<
+  string,
+  { label: string; short: string; className: string; slots: number }
+> = {
+  designer_badge: {
+    label: "Designer",
+    short: "DESIGNER",
+    className:
+      "bg-primary/15 text-primary ring-1 ring-primary/40 drop-shadow-[0_0_10px_color-mix(in_oklab,var(--neon-purple)_70%,transparent)]",
+    slots: 0,
+  },
+  rich_badge: {
+    label: "Rich",
+    short: "RICH",
+    className:
+      "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/50 drop-shadow-[0_0_10px_rgba(16,185,129,0.85)]",
+    slots: 5,
+  },
+  goat_badge: {
+    label: "GOAT",
+    short: "GOAT",
+    className:
+      "bg-amber-400/15 text-amber-300 ring-1 ring-amber-300/60 drop-shadow-[0_0_12px_rgba(250,204,21,0.9)]",
+    slots: 10,
+  },
+  exclusive_badge: {
+    label: "Exclusive",
+    short: "EXCLUSIVE",
+    className:
+      "bg-sky-400/15 text-sky-300 ring-1 ring-sky-300/60 drop-shadow-[0_0_12px_rgba(56,189,248,0.9)]",
+    slots: 9999,
+  },
+};
+
+export const DEADLINE_PRESETS = [
+  { days: 1, label: "1 day" },
+  { days: 2, label: "2 days" },
+  { days: 3, label: "3 days" },
+  { days: 5, label: "5 days" },
+  { days: 7, label: "1 week" },
+  { days: 14, label: "2 weeks" },
+] as const;
+
+export const BUDGET_PRESETS = [100, 300, 500, 1000, 2000, 5000] as const;

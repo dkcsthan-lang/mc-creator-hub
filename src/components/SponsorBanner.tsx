@@ -35,7 +35,7 @@ export function SponsorBanner() {
         rel="noreferrer noopener"
         className="relative mt-10 block overflow-hidden rounded-2xl border border-primary/40 shadow-[0_0_40px_-15px_color-mix(in_oklab,var(--neon-purple)_60%,transparent)] transition hover:border-primary"
       >
-        <div className="relative aspect-[6/1] w-full bg-card/50 sm:aspect-[8/1]">
+        <div className="relative aspect-video w-full bg-card/50">
           <img src={imgUrl} alt={ad.title} className="h-full w-full object-cover" />
           <div className="absolute bottom-2 right-2 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur">Sponsored</div>
         </div>
