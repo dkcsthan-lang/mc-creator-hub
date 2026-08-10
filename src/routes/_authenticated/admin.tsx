@@ -7,19 +7,19 @@ import { useRoles } from "@/lib/session";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  User, Users, FileCheck, ImageIcon, Flag, IndianRupee,
-  ShoppingBag, ChevronLeft, Shield, LayoutDashboard,
+  Users, FileCheck, ImageIcon, Flag, IndianRupee,
+  ShoppingBag, ChevronLeft, Shield, LayoutDashboard, Megaphone, Wallet,
 } from "lucide-react";
-import { CATEGORY_LABELS } from "@/lib/mctech";
+import { CATEGORY_LABELS, DESIGNER_SLOTS, BADGE_META, DEFAULT_DESIGNER_SLOTS } from "@/lib/mctech";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — OnlyCreators" }] }),
   component: Admin,
 });
 
-type View = "home" | "users" | "apps" | "reports" | "samples";
+type View = "home" | "users" | "apps" | "reports" | "samples" | "sponsors" | "payments";
+
 
 function Admin() {
   const { isAdmin, loading } = useRoles();
