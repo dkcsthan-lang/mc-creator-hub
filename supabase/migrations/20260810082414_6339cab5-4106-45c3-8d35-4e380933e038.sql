@@ -1,0 +1,11 @@
+REVOKE ALL ON FUNCTION public.on_order_status_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.on_sample_status_change() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.notify_new_order() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.notify_new_message() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.notify_new_follow() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.block_self_follow() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.block_self_sample_interaction() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.sync_sample_likes() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.grant_site_admin() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.set_updated_at() FROM PUBLIC, anon, authenticated;

@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { SPONSOR_DURATIONS } from "@/lib/mctech";
-import { Megaphone, ArrowLeft, LogIn } from "lucide-react";
+import { SPONSOR_DURATIONS, SPONSOR_GIF_ADDON_PRICE } from "@/lib/mctech";
+import { Megaphone, ArrowLeft, LogIn, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/sponsor")({
   head: () => ({
@@ -30,10 +30,12 @@ function Sponsor() {
   const [title, setTitle] = useState("");
   const [destUrl, setDestUrl] = useState("");
   const [duration, setDuration] = useState(SPONSOR_DURATIONS[0].key as string);
+  const [gifEnabled, setGifEnabled] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   const dur = SPONSOR_DURATIONS.find((d) => d.key === duration)!;
+  const total = dur.price + (gifEnabled ? SPONSOR_GIF_ADDON_PRICE : 0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,6 +46,8 @@ function Sponsor() {
     }
     if (!file) return toast.error("Upload a banner image or GIF.");
     if (!destUrl.startsWith("http")) return toast.error("Destination link must be a full URL.");
+    const isGif = file.type === "image/gif" || /\.gif$/i.test(file.name);
+    if (isGif && !gifEnabled) return toast.error(`Enable the GIF add-on (+₹${SPONSOR_GIF_ADDON_PRICE}) to use an animated banner.`);
     setBusy(true);
     try {
       const path = `${user.id}/${Date.now()}-${file.name}`;
@@ -51,25 +55,21 @@ function Sponsor() {
       if (upErr) throw new Error(upErr.message);
 
       const expires = new Date(Date.now() + dur.days * 86400_000).toISOString();
-      const { error } = await supabase.from("sponsor_ads").insert({
+      const { data: row, error } = await supabase.from("sponsor_ads").insert({
         user_id: user.id, title, destination_url: destUrl,
-        image_path: path, duration_days: dur.days, price: dur.price,
-        status: "active", expires_at: expires,
-      } as any);
-      if (error) throw new Error(error.message);
+        image_path: path, duration_days: dur.days, price: total,
+        gif_enabled: gifEnabled, status: "draft", expires_at: expires,
+      } as any).select("id").single();
+      if (error || !row) throw new Error(error?.message ?? "Could not create sponsorship");
 
-      // mock payment record
-      await supabase.from("mock_purchases").insert({
-        user_id: user.id, item_key: `sponsor_${dur.key}`, item_type: `Sponsor ad (${dur.label})`, price: dur.price,
-      });
-      toast.success(`Ad live for ${dur.label} (mock payment)`);
-      nav({ to: "/" });
+      nav({ to: "/pay/$kind/$id", params: { kind: "sponsor", id: (row as any).id } });
     } catch (err: any) {
       toast.error(err?.message ?? "Could not submit your ad. Please try again.");
     } finally {
       setBusy(false);
     }
   }
+
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -108,10 +108,28 @@ function Sponsor() {
             <Input required maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div>
-            <Label>Banner image or GIF (horizontal)</Label>
+            <Label>Banner image or GIF (16:9)</Label>
             <Input required type="file" accept="image/*,image/gif" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-            <p className="mt-1 text-xs text-muted-foreground">Recommended aspect ratio: 6:1 (wide).</p>
+            <p className="mt-1 text-xs text-muted-foreground">Displayed in YouTube-banner 16:9 ratio — 1920×1080 recommended.</p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setGifEnabled((v) => !v)}
+            className={
+              "flex w-full items-start gap-3 rounded-lg border p-4 text-left transition " +
+              (gifEnabled ? "border-primary bg-primary/15" : "border-border/60 bg-card/40 hover:border-primary/40")
+            }
+          >
+            <span className={"mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded border " + (gifEnabled ? "border-primary bg-primary text-primary-foreground" : "border-border")}>
+              {gifEnabled && <Sparkles className="h-3 w-3" />}
+            </span>
+            <span>
+              <span className="block text-sm font-semibold">Animated GIF banner (+₹{SPONSOR_GIF_ADDON_PRICE})</span>
+              <span className="block text-xs text-muted-foreground">Enable this to upload an animated GIF instead of a static image.</span>
+            </span>
+          </button>
+
           <div>
             <Label>Duration</Label>
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -136,14 +154,16 @@ function Sponsor() {
 
           <div className="rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm">
             <p className="flex items-center justify-between">
-              <span className="text-muted-foreground">Total (mock)</span>
-              <span className="text-lg font-bold neon-gradient-text">₹{dur.price}</span>
+              <span className="text-muted-foreground">Total</span>
+              <span className="text-lg font-bold neon-gradient-text">₹{total}</span>
             </p>
+            {gifEnabled && <p className="mt-1 text-xs text-muted-foreground">Includes GIF add-on ₹{SPONSOR_GIF_ADDON_PRICE}</p>}
           </div>
 
           <Button disabled={busy} type="submit" className="w-full neon-glow">
-            {busy ? "Submitting..." : "Pay & submit (mock)"}
+            {busy ? "Submitting..." : "Continue to pay & submit"}
           </Button>
+
         </form>
       </Card>
     </div>

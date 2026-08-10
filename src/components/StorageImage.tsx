@@ -9,7 +9,7 @@ const cache = new Map<string, { url: string; exp: number }>();
  * Resolves a stored value (public URL, storage path, or plain http URL) into a
  * usable image URL. Private buckets get a signed URL; anything else passes through.
  */
-export function useStorageUrl(raw: string | null | undefined) {
+export function useStorageUrl(raw: string | null | undefined, fallbackBucket?: string) {
   const [resolved, setResolved] = useState<string>("");
 
   useEffect(() => {
@@ -21,6 +21,12 @@ export function useStorageUrl(raw: string | null | undefined) {
     for (const b of BUCKETS) {
       const m = raw.match(new RegExp(`(?:^|/)${b}/(.+)$`));
       if (m) { bucket = b; path = m[1].split("?")[0]; break; }
+    }
+
+    // Bare storage path (e.g. "<uid>/1700-file.png") with an explicit bucket.
+    if (!bucket && fallbackBucket && !/^(https?:|blob:|data:)/i.test(raw)) {
+      bucket = fallbackBucket;
+      path = raw.replace(/^\/+/, "");
     }
 
     if (!bucket || !path) { setResolved(raw); return; }
@@ -41,7 +47,7 @@ export function useStorageUrl(raw: string | null | undefined) {
       }
     });
     return () => { cancelled = true; };
-  }, [raw]);
+  }, [raw, fallbackBucket]);
 
   return resolved;
 }
@@ -51,13 +57,16 @@ export function StorageImage({
   alt,
   className,
   loading,
+  bucket,
 }: {
   src: string | null | undefined;
   alt: string;
   className?: string;
   loading?: "lazy" | "eager";
+  bucket?: string;
 }) {
-  const url = useStorageUrl(src);
+  const url = useStorageUrl(src, bucket);
   if (!url) return null;
   return <img src={url} alt={alt} className={className} loading={loading} />;
 }
+

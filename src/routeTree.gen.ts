@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as SamplesIdRouteImport } from './routes/samples.$id'
 import { Route as CategoryCatRouteImport } from './routes/category.$cat'
+import { Route as AuthenticatedThanksRouteImport } from './routes/_authenticated/thanks'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
@@ -28,6 +29,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedOrdersNewRouteImport } from './routes/_authenticated/orders.new'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
+import { Route as AuthenticatedPayKindIdRouteImport } from './routes/_authenticated/pay.$kind.$id'
 
 const SponsorRoute = SponsorRouteImport.update({
   id: '/sponsor',
@@ -72,6 +74,11 @@ const CategoryCatRoute = CategoryCatRouteImport.update({
   id: '/category/$cat',
   path: '/category/$cat',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedThanksRoute = AuthenticatedThanksRouteImport.update({
+  id: '/thanks',
+  path: '/thanks',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStoreRoute = AuthenticatedStoreRouteImport.update({
   id: '/store',
@@ -125,6 +132,11 @@ const AuthenticatedMessagesUserIdRoute =
     path: '/$userId',
     getParentRoute: () => AuthenticatedMessagesRoute,
   } as any)
+const AuthenticatedPayKindIdRoute = AuthenticatedPayKindIdRouteImport.update({
+  id: '/pay/$kind/$id',
+  path: '/pay/$kind/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -139,12 +151,14 @@ export interface FileRoutesByFullPath {
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/store': typeof AuthenticatedStoreRoute
+  '/thanks': typeof AuthenticatedThanksRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
   '/u/$username': typeof UUsernameRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/pay/$kind/$id': typeof AuthenticatedPayKindIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,12 +173,14 @@ export interface FileRoutesByTo {
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/store': typeof AuthenticatedStoreRoute
+  '/thanks': typeof AuthenticatedThanksRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
   '/u/$username': typeof UUsernameRoute
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/pay/$kind/$id': typeof AuthenticatedPayKindIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -181,12 +197,14 @@ export interface FileRoutesById {
   '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/store': typeof AuthenticatedStoreRoute
+  '/_authenticated/thanks': typeof AuthenticatedThanksRoute
   '/category/$cat': typeof CategoryCatRoute
   '/samples/$id': typeof SamplesIdRoute
   '/u/$username': typeof UUsernameRoute
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/_authenticated/pay/$kind/$id': typeof AuthenticatedPayKindIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -203,12 +221,14 @@ export interface FileRouteTypes {
     | '/orders'
     | '/profile'
     | '/store'
+    | '/thanks'
     | '/category/$cat'
     | '/samples/$id'
     | '/u/$username'
     | '/messages/$userId'
     | '/orders/$id'
     | '/orders/new'
+    | '/pay/$kind/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -223,12 +243,14 @@ export interface FileRouteTypes {
     | '/orders'
     | '/profile'
     | '/store'
+    | '/thanks'
     | '/category/$cat'
     | '/samples/$id'
     | '/u/$username'
     | '/messages/$userId'
     | '/orders/$id'
     | '/orders/new'
+    | '/pay/$kind/$id'
   id:
     | '__root__'
     | '/'
@@ -244,12 +266,14 @@ export interface FileRouteTypes {
     | '/_authenticated/orders'
     | '/_authenticated/profile'
     | '/_authenticated/store'
+    | '/_authenticated/thanks'
     | '/category/$cat'
     | '/samples/$id'
     | '/u/$username'
     | '/_authenticated/messages/$userId'
     | '/_authenticated/orders/$id'
     | '/_authenticated/orders/new'
+    | '/_authenticated/pay/$kind/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -329,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoryCatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/thanks': {
+      id: '/_authenticated/thanks'
+      path: '/thanks'
+      fullPath: '/thanks'
+      preLoaderRoute: typeof AuthenticatedThanksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/store': {
       id: '/_authenticated/store'
       path: '/store'
@@ -399,6 +430,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
+    '/_authenticated/pay/$kind/$id': {
+      id: '/_authenticated/pay/$kind/$id'
+      path: '/pay/$kind/$id'
+      fullPath: '/pay/$kind/$id'
+      preLoaderRoute: typeof AuthenticatedPayKindIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -436,6 +474,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
+  AuthenticatedThanksRoute: typeof AuthenticatedThanksRoute
+  AuthenticatedPayKindIdRoute: typeof AuthenticatedPayKindIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -446,6 +486,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdersRoute: AuthenticatedOrdersRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
+  AuthenticatedThanksRoute: AuthenticatedThanksRoute,
+  AuthenticatedPayKindIdRoute: AuthenticatedPayKindIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

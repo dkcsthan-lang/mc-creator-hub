@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession, useRoles } from "@/lib/session";
@@ -17,21 +17,40 @@ export const Route = createFileRoute("/_authenticated/store")({
 function Store() {
   const { user } = useSession();
   const { isDesigner } = useRoles();
-  const [purchases, setPurchases] = useState<{ item_key: string }[]>([]);
+  const nav = useNavigate();
+  const [requests, setRequests] = useState<{ item_key: string; status: string }[]>([]);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("mock_purchases").select("item_key").eq("user_id", user.id).then(({ data }) => setPurchases((data as any) ?? []));
+    supabase.from("purchase_requests").select("item_key,status").eq("user_id", user.id).then(({ data }) => setRequests((data as any) ?? []));
   }, [user?.id]);
 
   async function buy(key: string, label: string, price: number) {
     if (!user) return;
-    const { error } = await supabase.from("mock_purchases").insert({ user_id: user.id, item_key: key, item_type: label, price });
-    if (error) return toast.error(error.message);
-    toast.success(`${label} activated (mock payment)`);
-    setPurchases((p) => [...p, { item_key: key }]);
+    const itemType = isDesigner
+      ? key.startsWith("slot")
+        ? "designer slot pack"
+        : "designer badge"
+      : "creator membership";
+    const { data, error } = await supabase
+      .from("purchase_requests")
+      .insert({
+        user_id: user.id,
+        buyer_role: isDesigner ? "designer" : "creator",
+        item_type: itemType,
+        item_key: key,
+        item_label: label,
+        price,
+        status: "draft",
+      } as any)
+      .select("id")
+      .single();
+    if (error || !data) return toast.error(error?.message ?? "Could not start purchase");
+    nav({ to: "/pay/$kind/$id", params: { kind: "store", id: (data as any).id } });
   }
-  const owned = new Set(purchases.map((p) => p.item_key));
+  const owned = new Set(requests.filter((r) => r.status === "approved").map((r) => r.item_key));
+  const pending = new Set(requests.filter((r) => r.status === "pending").map((r) => r.item_key));
+
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -45,14 +64,14 @@ function Store() {
         <p className="mx-auto mt-4 max-w-2xl text-sm text-muted-foreground">
           {isDesigner
             ? "Unlock more slots, higher-tier badges, and premium showcase perks."
-            : "Purchase memberships and badges. All purchases are mock payments — nothing is charged."}
+            : "Pick a membership, pay via UPI QR, and it activates as soon as an admin confirms your payment."}
         </p>
       </div>
 
       {isDesigner ? (
-        <DesignerStore owned={owned} onBuy={buy} />
+        <DesignerStore owned={owned} pending={pending} onBuy={buy} />
       ) : (
-        <CreatorStore owned={owned} onBuy={buy} />
+        <CreatorStore owned={owned} pending={pending} onBuy={buy} />
       )}
 
       <HowItWorks />
@@ -60,7 +79,10 @@ function Store() {
   );
 }
 
-function CreatorStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string, l: string, p: number) => void }) {
+type StoreProps = { owned: Set<string>; pending: Set<string>; onBuy: (k: string, l: string, p: number) => void };
+
+function CreatorStore({ owned, pending, onBuy }: StoreProps) {
+
   const iconFor = (i: string) => ({ sprout: Sprout, zap: Zap, gem: Gem, crown: Crown } as any)[i] ?? Sprout;
   return (
     <>
@@ -116,7 +138,7 @@ function CreatorStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string,
                     <Button variant="outline" disabled className="w-full">Current Free Plan</Button>
                   ) : (
                     <Button
-                      disabled={owned.has(p.key)}
+                      disabled={owned.has(p.key) || pending.has(p.key)}
                       onClick={() => onBuy(p.key, p.label, p.price)}
                       className={
                         "w-full " +
@@ -127,8 +149,9 @@ function CreatorStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string,
                           : "")
                       }
                     >
-                      {owned.has(p.key) ? "Owned" : `Buy ${p.label}`}
+                      {owned.has(p.key) ? "Owned" : pending.has(p.key) ? "Awaiting approval" : `Buy ${p.label}`}
                     </Button>
+
                   )}
                 </div>
               </Card>
@@ -140,7 +163,7 @@ function CreatorStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string,
   );
 }
 
-function DesignerStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string, l: string, p: number) => void }) {
+function DesignerStore({ owned, pending, onBuy }: StoreProps) {
   return (
     <>
       <Tabs defaultValue="badges" className="w-full">
@@ -152,14 +175,14 @@ function DesignerStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string
         <TabsContent value="badges">
           <div className="grid gap-5 sm:grid-cols-2">
             {DESIGNER_BADGES.map((b) => (
-              <BadgeCard key={b.key} badge={b} owned={owned.has(b.key)} onBuy={() => onBuy(b.key, b.label, b.price)} />
+              <BadgeCard key={b.key} badge={b} owned={owned.has(b.key)} pending={pending.has(b.key)} onBuy={() => onBuy(b.key, b.label, b.price)} />
             ))}
           </div>
         </TabsContent>
 
         <TabsContent value="slots">
           <p className="mb-6 text-center text-xs text-muted-foreground">
-            Add extra upload slots on top of the slots your badge grants.
+            Every designer starts with 5 upload slots. Buy packs to add more on top.
           </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {DESIGNER_SLOTS.map((s) => (
@@ -168,11 +191,11 @@ function DesignerStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string
                 <p className="mt-3 text-lg font-semibold">{s.label}</p>
                 <p className="mt-1 text-3xl font-bold neon-gradient-text">₹{s.price}</p>
                 <Button
-                  disabled={owned.has(s.key)}
+                  disabled={pending.has(s.key)}
                   onClick={() => onBuy(s.key, s.label, s.price)}
                   className="mt-4 w-full neon-glow"
                 >
-                  {owned.has(s.key) ? "Owned" : "Buy"}
+                  {pending.has(s.key) ? "Awaiting approval" : "Buy"}
                 </Button>
               </Card>
             ))}
@@ -183,7 +206,8 @@ function DesignerStore({ owned, onBuy }: { owned: Set<string>; onBuy: (k: string
   );
 }
 
-function BadgeCard({ badge, owned, onBuy }: { badge: any; owned: boolean; onBuy: () => void }) {
+
+function BadgeCard({ badge, owned, pending, onBuy }: { badge: any; owned: boolean; pending: boolean; onBuy: () => void }) {
   const themes: Record<string, string> = {
     purple: "border-primary/50 bg-gradient-to-br from-primary/20 via-primary/5 to-background shadow-[0_0_50px_-15px_color-mix(in_oklab,var(--neon-purple)_60%,transparent)]",
     green: "border-emerald-500/50 bg-gradient-to-br from-emerald-500/20 via-emerald-800/5 to-background shadow-[0_0_50px_-15px_rgba(16,185,129,0.5)]",
@@ -225,12 +249,13 @@ function BadgeCard({ badge, owned, onBuy }: { badge: any; owned: boolean; onBuy:
         ))}
       </ul>
       <Button
-        disabled={owned || badge.price === 0}
+        disabled={owned || pending || badge.price === 0}
         onClick={onBuy}
         className="mt-5 w-full neon-glow"
       >
-        {badge.price === 0 ? "Included" : owned ? "Owned" : `Buy ${badge.label}`}
+        {badge.price === 0 ? "Included" : owned ? "Owned" : pending ? "Awaiting approval" : `Buy ${badge.label}`}
       </Button>
+
     </Card>
   );
 }

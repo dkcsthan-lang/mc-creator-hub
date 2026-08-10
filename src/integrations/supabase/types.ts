@@ -213,6 +213,7 @@ export type Database = {
           expired: boolean
           id: string
           paid_at: string | null
+          payment_qr_path: string | null
           price: number
           reference_url: string | null
           status: string
@@ -235,6 +236,7 @@ export type Database = {
           expired?: boolean
           id?: string
           paid_at?: string | null
+          payment_qr_path?: string | null
           price: number
           reference_url?: string | null
           status?: string
@@ -257,6 +259,7 @@ export type Database = {
           expired?: boolean
           id?: string
           paid_at?: string | null
+          payment_qr_path?: string | null
           price?: number
           reference_url?: string | null
           status?: string
@@ -274,6 +277,7 @@ export type Database = {
           bio: string | null
           completed_orders: number
           created_at: string
+          designer_badge: string | null
           designer_tag: string | null
           display_name: string | null
           gif_avatar_url: string | null
@@ -295,6 +299,7 @@ export type Database = {
           bio?: string | null
           completed_orders?: number
           created_at?: string
+          designer_badge?: string | null
           designer_tag?: string | null
           display_name?: string | null
           gif_avatar_url?: string | null
@@ -316,6 +321,7 @@ export type Database = {
           bio?: string | null
           completed_orders?: number
           created_at?: string
+          designer_badge?: string | null
           designer_tag?: string | null
           display_name?: string | null
           gif_avatar_url?: string | null
@@ -329,6 +335,48 @@ export type Database = {
           value_cycles?: number
           value_points?: number
           years_experience?: number | null
+        }
+        Relationships: []
+      }
+      purchase_requests: {
+        Row: {
+          admin_note: string | null
+          buyer_role: string
+          created_at: string
+          id: string
+          item_key: string
+          item_label: string
+          item_type: string
+          price: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          buyer_role?: string
+          created_at?: string
+          id?: string
+          item_key: string
+          item_label: string
+          item_type: string
+          price?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          buyer_role?: string
+          created_at?: string
+          id?: string
+          item_key?: string
+          item_label?: string
+          item_type?: string
+          price?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -499,10 +547,12 @@ export type Database = {
       }
       sponsor_ads: {
         Row: {
+          admin_note: string | null
           created_at: string
           destination_url: string
           duration_days: number
           expires_at: string
+          gif_enabled: boolean
           id: string
           image_path: string
           price: number
@@ -513,10 +563,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_note?: string | null
           created_at?: string
           destination_url: string
           duration_days: number
           expires_at: string
+          gif_enabled?: boolean
           id?: string
           image_path: string
           price: number
@@ -527,10 +579,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_note?: string | null
           created_at?: string
           destination_url?: string
           duration_days?: number
           expires_at?: string
+          gif_enabled?: boolean
           id?: string
           image_path?: string
           price?: number
