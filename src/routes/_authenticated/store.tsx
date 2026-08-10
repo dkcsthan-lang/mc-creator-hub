@@ -207,7 +207,7 @@ function DesignerStore({ owned, pending, onBuy }: StoreProps) {
 }
 
 
-function BadgeCard({ badge, owned, onBuy }: { badge: any; owned: boolean; onBuy: () => void }) {
+function BadgeCard({ badge, owned, pending, onBuy }: { badge: any; owned: boolean; pending: boolean; onBuy: () => void }) {
   const themes: Record<string, string> = {
     purple: "border-primary/50 bg-gradient-to-br from-primary/20 via-primary/5 to-background shadow-[0_0_50px_-15px_color-mix(in_oklab,var(--neon-purple)_60%,transparent)]",
     green: "border-emerald-500/50 bg-gradient-to-br from-emerald-500/20 via-emerald-800/5 to-background shadow-[0_0_50px_-15px_rgba(16,185,129,0.5)]",
