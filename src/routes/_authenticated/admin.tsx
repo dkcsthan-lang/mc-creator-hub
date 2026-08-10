@@ -73,6 +73,9 @@ function Admin() {
         {view === "apps" && <Applications />}
         {view === "reports" && <ReportsPanel />}
         {view === "samples" && <SamplesPanel />}
+        {view === "sponsors" && <SponsorsPanel />}
+        {view === "payments" && <PaymentsPanel />}
+
       </div>
     );
   }
