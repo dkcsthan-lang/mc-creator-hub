@@ -28,6 +28,7 @@ function OrderDetail() {
   const [order, setOrder] = useState<Order | null>(null);
   const [wm, setWm] = useState<File | null>(null);
   const [finalFile, setFinalFile] = useState<File | null>(null);
+  const [qr, setQr] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function refresh() {
