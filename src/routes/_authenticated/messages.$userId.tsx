@@ -171,12 +171,13 @@ function Thread() {
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         <input ref={fileInput} type="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        <Button type="button" variant="outline" size="icon" aria-label="Send image" onClick={() => imageInput.current?.click()}>
+        <Button type="button" variant="outline" size="icon" aria-label="Send image" title={canAttachFiles ? "Send image" : "Exclusive / Supreme only"} onClick={() => pickFile(imageInput)}>
           <ImagePlus className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="outline" size="icon" aria-label="Attach file" onClick={() => fileInput.current?.click()}>
+        <Button type="button" variant="outline" size="icon" aria-label="Attach file" title={canAttachFiles ? "Attach file (50MB)" : "Exclusive / Supreme only"} onClick={() => pickFile(fileInput)}>
           <Paperclip className="h-4 w-4" />
         </Button>
+
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message..." />
         <Button type="submit" disabled={sending || (!text.trim() && !file)} className="neon-glow"><Send className="h-4 w-4" /></Button>
       </form>
