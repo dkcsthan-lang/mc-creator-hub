@@ -72,39 +72,59 @@ function OrderDetail() {
   async function deliverPreview() {
     if (!wm || !order) return;
     if (!finalFile) return toast.error("Also upload the final (clean) file — customer gets it after paying.");
+    if (!qr) return toast.error("Upload your payment QR so the customer can pay you.");
     setBusy(true);
     try {
       const wmPath = `${order.id}/preview-${Date.now()}-${wm.name}`;
       const finalPath = `${order.id}/final-${Date.now()}-${finalFile.name}`;
+      const qrPath = `${order.id}/qr-${Date.now()}-${qr.name.replace(/[^\w.-]/g, "_")}`;
       const u1 = await supabase.storage.from("order-files").upload(wmPath, wm);
       if (u1.error) throw u1.error;
       const u2 = await supabase.storage.from("order-files").upload(finalPath, finalFile);
       if (u2.error) throw u2.error;
+      const u3 = await supabase.storage.from("order-files").upload(qrPath, qr);
+      if (u3.error) throw u3.error;
       const { error } = await supabase.from("orders").update({
-        watermark_path: wmPath, deliverable_path: finalPath, status: "delivered", delivered_at: new Date().toISOString(),
+        watermark_path: wmPath, deliverable_path: finalPath, payment_qr_path: qrPath,
+        status: "delivered", delivered_at: new Date().toISOString(),
       }).eq("id", order.id);
       if (error) throw error;
-      toast.success("Preview delivered — customer notified.");
-      setWm(null); setFinalFile(null);
+      toast.success("Order delivered — customer notified.");
+      setWm(null); setFinalFile(null); setQr(null);
       refresh();
     } catch (err: any) {
       toast.error(err.message);
     } finally { setBusy(false); }
   }
 
-  async function payAndUnlock() {
+  async function approvePayment() {
     if (!order) return;
     setBusy(true);
-    // Log mock purchase
-    await supabase.from("mock_purchases").insert({ user_id: user!.id, item_type: "order", item_key: order.id, price: order.price }).select();
-    const { error } = await supabase.from("orders").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", order.id);
-    if (error) { setBusy(false); return toast.error(error.message); }
-    // Immediately mark as completed to count toward designer stats
-    await supabase.from("orders").update({ status: "completed" }).eq("id", order.id);
+    await supabase.from("mock_purchases").insert({ user_id: order.customer_id, item_type: "order", item_key: order.id, price: order.price }).select();
+    const { error } = await supabase.from("orders").update({ status: "completed", paid_at: new Date().toISOString() }).eq("id", order.id);
     setBusy(false);
-    toast.success("Payment complete — download unlocked");
+    if (error) return toast.error(error.message);
+    toast.success("Payment approved — file released to the customer.");
     refresh();
   }
+
+  async function disputePayment() {
+    if (!order) return;
+    setBusy(true);
+    const { error } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id);
+    if (!error) {
+      await supabase.from("notifications").insert({
+        user_id: order.customer_id, type: "order", title: "Payment not received",
+        body: "Your designer could not confirm the payment. Please pay again or contact them.",
+        link: `/orders/${order.id}`,
+      } as any);
+    }
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Marked as not received — customer notified.");
+    refresh();
+  }
+
 
   async function download() {
     if (!order?.deliverable_path) return;
