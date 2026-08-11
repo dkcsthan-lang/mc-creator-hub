@@ -11,6 +11,8 @@ import { useSession } from "@/lib/session";
 import { toast } from "sonner";
 import { levelFromCompleted } from "@/lib/mctech";
 import { CreatorProfile, type CreatorProfileData } from "@/components/CreatorProfile";
+import { DesignerBadge } from "@/components/DesignerBadge";
+
 
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
