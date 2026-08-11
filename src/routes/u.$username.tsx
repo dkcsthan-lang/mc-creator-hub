@@ -127,8 +127,12 @@ function Portfolio() {
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary ring-1 ring-primary/30">
                 {profile.designer_tag || "Designer"}
               </span>
+              {profile.designer_badge && profile.designer_badge !== "designer_badge" && (
+                <DesignerBadge badgeKey={profile.designer_badge} />
+              )}
               <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{level.label}</span>
             </div>
+
             {profile.bio && (
               <p className="mt-2 max-w-md whitespace-pre-wrap text-sm text-muted-foreground">{profile.bio}</p>
             )}
