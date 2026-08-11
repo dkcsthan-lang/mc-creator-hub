@@ -171,14 +171,15 @@ function OrderDetail() {
         {isDesigner && order.status === "accepted" && (
           <div className="mt-6 space-y-3 rounded-md border border-border/60 p-4">
             <p className="text-sm font-medium">Deliver work</p>
-            <p className="text-xs text-muted-foreground">Upload a watermarked preview + the clean final file. Customer pays to unlock the final.</p>
+            <p className="text-xs text-muted-foreground">Upload a watermarked preview, the clean final file, and your UPI QR — the customer pays you directly, then you approve to release the file.</p>
             <div><Label>Watermarked preview</Label><Input type="file" onChange={(e) => setWm(e.target.files?.[0] ?? null)} /></div>
             <div><Label>Final (clean) file</Label><Input type="file" onChange={(e) => setFinalFile(e.target.files?.[0] ?? null)} /></div>
-            <Button disabled={busy || !wm || !finalFile} onClick={deliverPreview} className="neon-glow">Deliver preview</Button>
+            <div><Label>Your payment QR (image)</Label><Input type="file" accept="image/*" onChange={(e) => setQr(e.target.files?.[0] ?? null)} /></div>
+            <Button disabled={busy || !wm || !finalFile || !qr} onClick={deliverPreview} className="neon-glow">{busy ? "Uploading..." : "Deliver order"}</Button>
           </div>
         )}
 
-        {(order.status === "delivered" || order.status === "paid" || order.status === "completed") && previewUrl && (
+        {(order.status === "delivered" || order.status === "payment_pending" || order.status === "paid" || order.status === "completed") && previewUrl && (
           <div className="mt-6">
             <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Preview (watermarked)</p>
             <SampleImage src={previewUrl} alt="preview" className="max-h-96 w-full rounded-md object-contain" />
@@ -187,8 +188,26 @@ function OrderDetail() {
 
         {isCustomer && order.status === "delivered" && (
           <div className="mt-6 rounded-md border border-primary/40 p-4">
-            <p className="mb-3 text-sm">Your file is ready 🎉 Pay to unlock the clean download.</p>
-            <Button disabled={busy} onClick={payAndUnlock} className="neon-glow">Pay ₹{order.price} & purchase (mock)</Button>
+            <p className="mb-3 text-sm">Your order is delivered 🎉 Pay the designer to unlock the clean file.</p>
+            <Button asChild className="neon-glow">
+              <Link to="/pay/$kind/$id" params={{ kind: "order", id: order.id }}>Pay ₹{order.price} &amp; purchase</Link>
+            </Button>
+          </div>
+        )}
+
+        {isCustomer && order.status === "payment_pending" && (
+          <div className="mt-6 rounded-md border border-primary/40 bg-primary/10 p-3 text-sm text-muted-foreground">
+            Payment submitted — waiting for the designer to confirm. Your file unlocks right after approval.
+          </div>
+        )}
+
+        {isDesigner && order.status === "payment_pending" && (
+          <div className="mt-6 space-y-3 rounded-md border border-primary/40 p-4">
+            <p className="text-sm">The customer submitted payment. Approve once the money is in your account.</p>
+            <div className="flex gap-2">
+              <Button disabled={busy} onClick={approvePayment} className="neon-glow">Approve payment &amp; release file</Button>
+              <Button disabled={busy} variant="outline" onClick={disputePayment}>Not received</Button>
+            </div>
           </div>
         )}
 
@@ -201,6 +220,7 @@ function OrderDetail() {
             + ₹{order.price} added to your earnings.
           </div>
         )}
+
       </Card>
     </div>
   );
