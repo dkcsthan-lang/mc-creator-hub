@@ -11,6 +11,8 @@ import { useSession } from "@/lib/session";
 import { toast } from "sonner";
 import { levelFromCompleted } from "@/lib/mctech";
 import { CreatorProfile, type CreatorProfileData } from "@/components/CreatorProfile";
+import { DesignerBadge } from "@/components/DesignerBadge";
+
 
 export const Route = createFileRoute("/u/$username")({
   head: ({ params }) => ({
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/u/$username")({
 
 type Profile = {
   id: string; username: string | null; display_name: string | null; bio: string | null;
-  avatar_url: string | null; banner_url: string | null; designer_tag: string | null;
+  avatar_url: string | null; banner_url: string | null; designer_tag: string | null; designer_badge?: string | null;
   years_experience: number | null; completed_orders: number;
   allowed_categories?: string[] | null; membership?: string; created_at?: string;
   orders_placed?: number; total_spent?: number; value_points?: number; value_cycles?: number;
@@ -127,8 +129,12 @@ function Portfolio() {
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] text-primary ring-1 ring-primary/30">
                 {profile.designer_tag || "Designer"}
               </span>
+              {profile.designer_badge && profile.designer_badge !== "designer_badge" && (
+                <DesignerBadge badgeKey={profile.designer_badge} />
+              )}
               <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{level.label}</span>
             </div>
+
             {profile.bio && (
               <p className="mt-2 max-w-md whitespace-pre-wrap text-sm text-muted-foreground">{profile.bio}</p>
             )}

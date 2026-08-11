@@ -2,6 +2,8 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
+import { useEntitlements } from "@/lib/entitlements";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -46,6 +48,7 @@ function Attachment({ path, mine }: { path: string; mine: boolean }) {
 function Thread() {
   const { userId } = useParams({ from: "/_authenticated/messages/$userId" });
   const { user } = useSession();
+  const { canAttachFiles } = useEntitlements();
   const [other, setOther] = useState<Profile | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
@@ -54,6 +57,15 @@ function Thread() {
   const endRef = useRef<HTMLDivElement>(null);
   const imageInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  function pickFile(ref: React.RefObject<HTMLInputElement | null>) {
+    if (!canAttachFiles) {
+      toast.error("Attachments are for Exclusive-badge designers and Supreme creators only.");
+      return;
+    }
+    ref.current?.click();
+  }
+
 
   async function load() {
     if (!user) return;
@@ -97,7 +109,8 @@ function Thread() {
     try {
       let attachment_path: string | null = null;
       if (file) {
-        if (file.size > 20 * 1024 * 1024) throw new Error("File must be under 20MB");
+        if (!canAttachFiles) throw new Error("Attachments are for Exclusive-badge designers and Supreme creators only.");
+        if (file.size > 50 * 1024 * 1024) throw new Error("File must be under 50MB");
         const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
         const up = await supabase.storage.from("chat-files").upload(path, file);
         if (up.error) throw new Error(up.error.message);
@@ -158,12 +171,13 @@ function Thread() {
       <form onSubmit={send} className="mt-3 flex items-center gap-2">
         <input ref={imageInput} type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         <input ref={fileInput} type="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        <Button type="button" variant="outline" size="icon" aria-label="Send image" onClick={() => imageInput.current?.click()}>
+        <Button type="button" variant="outline" size="icon" aria-label="Send image" title={canAttachFiles ? "Send image" : "Exclusive / Supreme only"} onClick={() => pickFile(imageInput)}>
           <ImagePlus className="h-4 w-4" />
         </Button>
-        <Button type="button" variant="outline" size="icon" aria-label="Attach file" onClick={() => fileInput.current?.click()}>
+        <Button type="button" variant="outline" size="icon" aria-label="Attach file" title={canAttachFiles ? "Attach file (50MB)" : "Exclusive / Supreme only"} onClick={() => pickFile(fileInput)}>
           <Paperclip className="h-4 w-4" />
         </Button>
+
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message..." />
         <Button type="submit" disabled={sending || (!text.trim() && !file)} className="neon-glow"><Send className="h-4 w-4" /></Button>
       </form>

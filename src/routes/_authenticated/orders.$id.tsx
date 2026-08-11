@@ -14,7 +14,7 @@ type Order = {
   id: string; customer_id: string; designer_id: string; title: string | null; category: string;
   details: string; reference_url: string | null; attachment_paths: string[]; price: number;
   budget_min: number | null; budget_max: number | null; deadline: string | null; status: string;
-  deliverable_path: string | null; watermark_path: string | null; expired: boolean; created_at: string;
+  deliverable_path: string | null; watermark_path: string | null; payment_qr_path: string | null; expired: boolean; created_at: string;
 };
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
@@ -28,6 +28,7 @@ function OrderDetail() {
   const [order, setOrder] = useState<Order | null>(null);
   const [wm, setWm] = useState<File | null>(null);
   const [finalFile, setFinalFile] = useState<File | null>(null);
+  const [qr, setQr] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function refresh() {
@@ -71,39 +72,59 @@ function OrderDetail() {
   async function deliverPreview() {
     if (!wm || !order) return;
     if (!finalFile) return toast.error("Also upload the final (clean) file — customer gets it after paying.");
+    if (!qr) return toast.error("Upload your payment QR so the customer can pay you.");
     setBusy(true);
     try {
       const wmPath = `${order.id}/preview-${Date.now()}-${wm.name}`;
       const finalPath = `${order.id}/final-${Date.now()}-${finalFile.name}`;
+      const qrPath = `${order.id}/qr-${Date.now()}-${qr.name.replace(/[^\w.-]/g, "_")}`;
       const u1 = await supabase.storage.from("order-files").upload(wmPath, wm);
       if (u1.error) throw u1.error;
       const u2 = await supabase.storage.from("order-files").upload(finalPath, finalFile);
       if (u2.error) throw u2.error;
+      const u3 = await supabase.storage.from("order-files").upload(qrPath, qr);
+      if (u3.error) throw u3.error;
       const { error } = await supabase.from("orders").update({
-        watermark_path: wmPath, deliverable_path: finalPath, status: "delivered", delivered_at: new Date().toISOString(),
+        watermark_path: wmPath, deliverable_path: finalPath, payment_qr_path: qrPath,
+        status: "delivered", delivered_at: new Date().toISOString(),
       }).eq("id", order.id);
       if (error) throw error;
-      toast.success("Preview delivered — customer notified.");
-      setWm(null); setFinalFile(null);
+      toast.success("Order delivered — customer notified.");
+      setWm(null); setFinalFile(null); setQr(null);
       refresh();
     } catch (err: any) {
       toast.error(err.message);
     } finally { setBusy(false); }
   }
 
-  async function payAndUnlock() {
+  async function approvePayment() {
     if (!order) return;
     setBusy(true);
-    // Log mock purchase
-    await supabase.from("mock_purchases").insert({ user_id: user!.id, item_type: "order", item_key: order.id, price: order.price }).select();
-    const { error } = await supabase.from("orders").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", order.id);
-    if (error) { setBusy(false); return toast.error(error.message); }
-    // Immediately mark as completed to count toward designer stats
-    await supabase.from("orders").update({ status: "completed" }).eq("id", order.id);
+    await supabase.from("mock_purchases").insert({ user_id: order.customer_id, item_type: "order", item_key: order.id, price: order.price }).select();
+    const { error } = await supabase.from("orders").update({ status: "completed", paid_at: new Date().toISOString() }).eq("id", order.id);
     setBusy(false);
-    toast.success("Payment complete — download unlocked");
+    if (error) return toast.error(error.message);
+    toast.success("Payment approved — file released to the customer.");
     refresh();
   }
+
+  async function disputePayment() {
+    if (!order) return;
+    setBusy(true);
+    const { error } = await supabase.from("orders").update({ status: "delivered" }).eq("id", order.id);
+    if (!error) {
+      await supabase.from("notifications").insert({
+        user_id: order.customer_id, type: "order", title: "Payment not received",
+        body: "Your designer could not confirm the payment. Please pay again or contact them.",
+        link: `/orders/${order.id}`,
+      } as any);
+    }
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Marked as not received — customer notified.");
+    refresh();
+  }
+
 
   async function download() {
     if (!order?.deliverable_path) return;
@@ -126,6 +147,7 @@ function OrderDetail() {
     delivered: "bg-primary/20 text-primary",
     paid: "bg-emerald-500/20 text-emerald-400",
     completed: "bg-emerald-500/20 text-emerald-400",
+    payment_pending: "bg-amber-500/20 text-amber-400",
     expired: "bg-destructive/20 text-destructive",
   };
 
@@ -171,14 +193,15 @@ function OrderDetail() {
         {isDesigner && order.status === "accepted" && (
           <div className="mt-6 space-y-3 rounded-md border border-border/60 p-4">
             <p className="text-sm font-medium">Deliver work</p>
-            <p className="text-xs text-muted-foreground">Upload a watermarked preview + the clean final file. Customer pays to unlock the final.</p>
+            <p className="text-xs text-muted-foreground">Upload a watermarked preview, the clean final file, and your UPI QR — the customer pays you directly, then you approve to release the file.</p>
             <div><Label>Watermarked preview</Label><Input type="file" onChange={(e) => setWm(e.target.files?.[0] ?? null)} /></div>
             <div><Label>Final (clean) file</Label><Input type="file" onChange={(e) => setFinalFile(e.target.files?.[0] ?? null)} /></div>
-            <Button disabled={busy || !wm || !finalFile} onClick={deliverPreview} className="neon-glow">Deliver preview</Button>
+            <div><Label>Your payment QR (image)</Label><Input type="file" accept="image/*" onChange={(e) => setQr(e.target.files?.[0] ?? null)} /></div>
+            <Button disabled={busy || !wm || !finalFile || !qr} onClick={deliverPreview} className="neon-glow">{busy ? "Uploading..." : "Deliver order"}</Button>
           </div>
         )}
 
-        {(order.status === "delivered" || order.status === "paid" || order.status === "completed") && previewUrl && (
+        {(order.status === "delivered" || order.status === "payment_pending" || order.status === "paid" || order.status === "completed") && previewUrl && (
           <div className="mt-6">
             <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Preview (watermarked)</p>
             <SampleImage src={previewUrl} alt="preview" className="max-h-96 w-full rounded-md object-contain" />
@@ -187,8 +210,26 @@ function OrderDetail() {
 
         {isCustomer && order.status === "delivered" && (
           <div className="mt-6 rounded-md border border-primary/40 p-4">
-            <p className="mb-3 text-sm">Your file is ready 🎉 Pay to unlock the clean download.</p>
-            <Button disabled={busy} onClick={payAndUnlock} className="neon-glow">Pay ₹{order.price} & purchase (mock)</Button>
+            <p className="mb-3 text-sm">Your order is delivered 🎉 Pay the designer to unlock the clean file.</p>
+            <Button asChild className="neon-glow">
+              <Link to="/pay/$kind/$id" params={{ kind: "order", id: order.id }}>Pay ₹{order.price} &amp; purchase</Link>
+            </Button>
+          </div>
+        )}
+
+        {isCustomer && order.status === "payment_pending" && (
+          <div className="mt-6 rounded-md border border-primary/40 bg-primary/10 p-3 text-sm text-muted-foreground">
+            Payment submitted — waiting for the designer to confirm. Your file unlocks right after approval.
+          </div>
+        )}
+
+        {isDesigner && order.status === "payment_pending" && (
+          <div className="mt-6 space-y-3 rounded-md border border-primary/40 p-4">
+            <p className="text-sm">The customer submitted payment. Approve once the money is in your account.</p>
+            <div className="flex gap-2">
+              <Button disabled={busy} onClick={approvePayment} className="neon-glow">Approve payment &amp; release file</Button>
+              <Button disabled={busy} variant="outline" onClick={disputePayment}>Not received</Button>
+            </div>
           </div>
         )}
 
@@ -201,6 +242,7 @@ function OrderDetail() {
             + ₹{order.price} added to your earnings.
           </div>
         )}
+
       </Card>
     </div>
   );
