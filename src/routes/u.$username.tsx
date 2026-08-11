@@ -28,7 +28,7 @@ export const Route = createFileRoute("/u/$username")({
 
 type Profile = {
   id: string; username: string | null; display_name: string | null; bio: string | null;
-  avatar_url: string | null; banner_url: string | null; designer_tag: string | null;
+  avatar_url: string | null; banner_url: string | null; designer_tag: string | null; designer_badge?: string | null;
   years_experience: number | null; completed_orders: number;
   allowed_categories?: string[] | null; membership?: string; created_at?: string;
   orders_placed?: number; total_spent?: number; value_points?: number; value_cycles?: number;
