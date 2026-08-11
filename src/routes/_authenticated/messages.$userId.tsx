@@ -109,7 +109,8 @@ function Thread() {
     try {
       let attachment_path: string | null = null;
       if (file) {
-        if (file.size > 20 * 1024 * 1024) throw new Error("File must be under 20MB");
+        if (!canAttachFiles) throw new Error("Attachments are for Exclusive-badge designers and Supreme creators only.");
+        if (file.size > 50 * 1024 * 1024) throw new Error("File must be under 50MB");
         const path = `${user.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
         const up = await supabase.storage.from("chat-files").upload(path, file);
         if (up.error) throw new Error(up.error.message);
