@@ -46,6 +46,7 @@ function Attachment({ path, mine }: { path: string; mine: boolean }) {
 function Thread() {
   const { userId } = useParams({ from: "/_authenticated/messages/$userId" });
   const { user } = useSession();
+  const { canAttachFiles } = useEntitlements();
   const [other, setOther] = useState<Profile | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
@@ -54,6 +55,15 @@ function Thread() {
   const endRef = useRef<HTMLDivElement>(null);
   const imageInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  function pickFile(ref: React.RefObject<HTMLInputElement | null>) {
+    if (!canAttachFiles) {
+      toast.error("Attachments are for Exclusive-badge designers and Supreme creators only.");
+      return;
+    }
+    ref.current?.click();
+  }
+
 
   async function load() {
     if (!user) return;
