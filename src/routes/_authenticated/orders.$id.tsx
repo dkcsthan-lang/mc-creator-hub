@@ -147,6 +147,7 @@ function OrderDetail() {
     delivered: "bg-primary/20 text-primary",
     paid: "bg-emerald-500/20 text-emerald-400",
     completed: "bg-emerald-500/20 text-emerald-400",
+    payment_pending: "bg-amber-500/20 text-amber-400",
     expired: "bg-destructive/20 text-destructive",
   };
 
