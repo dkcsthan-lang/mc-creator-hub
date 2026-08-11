@@ -14,7 +14,7 @@ type Order = {
   id: string; customer_id: string; designer_id: string; title: string | null; category: string;
   details: string; reference_url: string | null; attachment_paths: string[]; price: number;
   budget_min: number | null; budget_max: number | null; deadline: string | null; status: string;
-  deliverable_path: string | null; watermark_path: string | null; expired: boolean; created_at: string;
+  deliverable_path: string | null; watermark_path: string | null; payment_qr_path: string | null; expired: boolean; created_at: string;
 };
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
