@@ -191,6 +191,14 @@ function Thread() {
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message..." />
         <Button type="submit" disabled={sending || (!text.trim() && !file)} className="neon-glow"><Send className="h-4 w-4" /></Button>
       </form>
+
+      {!canAttachFiles && (
+        <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          Attachments (up to 50MB) are unlocked with the Exclusive badge or Supreme membership —{" "}
+          <Link to="/store" className="text-primary hover:underline">visit the store</Link>.
+        </p>
+      )}
+
     </div>
   );
 }
