@@ -38,15 +38,22 @@ function NewOrder() {
     }
   }, [search.designer]);
 
+  // Load every designer once so the picker is never an empty box.
   useEffect(() => {
-    if (!q) return setResults([]);
     supabase.from("user_roles").select("user_id").eq("role", "designer").then(async ({ data }) => {
-      const ids = ((data ?? []) as { user_id: string }[]).map((r) => r.user_id);
+      const ids = ((data ?? []) as { user_id: string }[]).map((r) => r.user_id).filter((id) => id !== user?.id);
       if (ids.length === 0) return setResults([]);
-      const { data: p } = await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids).ilike("username", `%${q}%`).limit(10);
+      const { data: p } = await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids).limit(100);
       setResults((p as Designer[]) ?? []);
     });
-  }, [q]);
+  }, [user?.id]);
+
+  const visible = results.filter((r) => {
+    const t = q.trim().toLowerCase();
+    if (!t) return true;
+    return (r.username ?? "").toLowerCase().includes(t) || (r.display_name ?? "").toLowerCase().includes(t);
+  });
+
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
