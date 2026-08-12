@@ -179,6 +179,13 @@ function OrderDetail() {
         </div>
         {order.reference_url && <p className="mt-3 text-sm">Reference: <a className="text-primary underline" href={order.reference_url} target="_blank" rel="noreferrer">link</a></p>}
 
+        <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+          <span className="font-semibold text-primary">Next step: </span>
+          {nextStep(order.status, isDesigner)}
+        </div>
+
+
+
         {order.status === "expired" && (
           <div className="mt-6 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">This order expired past its deadline.</div>
         )}
@@ -248,7 +255,33 @@ function OrderDetail() {
   );
 }
 
+function nextStep(status: string, isDesigner: boolean): string {
+  switch (status) {
+    case "requested":
+    case "pending":
+      return isDesigner ? "Accept or reject this request." : "Waiting for the designer to accept your request.";
+    case "accepted":
+      return isDesigner
+        ? "Upload the watermarked preview, the clean final file and your UPI QR, then deliver."
+        : "The designer accepted — they're working on your order now.";
+    case "delivered":
+      return isDesigner ? "Waiting for the customer to pay via your QR." : "Pay the designer with the button below to unlock the clean file.";
+    case "payment_pending":
+      return isDesigner ? "Confirm you received the money, then release the file." : "Waiting for the designer to confirm your payment.";
+    case "paid":
+    case "completed":
+      return isDesigner ? "Order complete — earnings added." : "Order complete — download your file below.";
+    case "rejected":
+      return "This request was rejected. You can place a new order with another designer.";
+    case "expired":
+      return "This order passed its deadline.";
+    default:
+      return "No action needed right now.";
+  }
+}
+
 function Info({ label, value }: { label: string; value: string }) {
+
   return (
     <div>
       <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>

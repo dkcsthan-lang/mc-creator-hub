@@ -130,8 +130,18 @@ function Thread() {
     }
   }
 
+  if (user && userId === user.id) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <p className="text-sm text-muted-foreground">This is your own account — you can't chat with yourself.</p>
+        <Button asChild variant="outline" className="mt-4"><Link to="/messages">Back to messages</Link></Button>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-2xl flex-col px-4 py-4">
+
       <div className="mb-3 grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3">
         <Button asChild variant="ghost" size="icon"><Link to="/messages"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <UserAvatar src={other?.avatar_url} gifSrc={other?.gif_avatar_url} className="h-10 w-10" />
@@ -181,6 +191,14 @@ function Thread() {
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a message..." />
         <Button type="submit" disabled={sending || (!text.trim() && !file)} className="neon-glow"><Send className="h-4 w-4" /></Button>
       </form>
+
+      {!canAttachFiles && (
+        <p className="mt-2 text-center text-[11px] text-muted-foreground">
+          Attachments (up to 50MB) are unlocked with the Exclusive badge or Supreme membership —{" "}
+          <Link to="/store" className="text-primary hover:underline">visit the store</Link>.
+        </p>
+      )}
+
     </div>
   );
 }
