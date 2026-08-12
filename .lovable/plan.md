@@ -1,75 +1,33 @@
-# MCtech V1 — Full Build (defaults A)
+# Make orders and messaging actually usable
 
-Defaults locked: private samples with signed URLs, rank = `designer_tag` + level from completed orders (0–4 L1 / 5–19 L2 / 20–49 L3 / 50+ L4), orders auto-expire on read past deadline, Discord CTA link `#` (swap when you provide URL).
+## What I found
 
-## 1. Database migration
-New tables + columns, all with GRANTs + RLS:
-- `follows(follower_id, designer_id)` — follow relationships + notification trigger.
-- `messages(id, sender_id, recipient_id, body, attachment_path, read_at, created_at)` — realtime enabled.
-- `sample_likes(user_id, sample_id)` — for "most liked" row.
-- `samples`: add `media_type` (image/video/zip/gallery/server/skin), `gallery_paths text[]`, `server_id text`, `preview_path`.
-- `designer_applications`: add `categories app_category[]`, `years_experience int`.
-- `profiles`: add `allowed_categories app_category[]`, `banner_url`, `years_experience`, `completed_orders int`.
-- `orders`: add `budget_min`, `budget_max`, `deadline`, `watermark_path`, `expired bool`.
-- Realtime: add `messages`, `notifications`, `orders`, `follows` to publication.
-- Trigger: on order status→`completed`, increment designer `completed_orders`.
+The order and chat code is present in the project (order requests, accept/reject, delivery with watermark + UPI QR, pay & approve, chat with realtime and attachments). But the database has **0 orders and 0 messages ever created**, so nothing has ever flowed through either system. Access rules on both tables are correct, so this is not a permissions block — the flows are hard to reach and fail quietly:
 
-## 2. Upload wizard (`dashboard.tsx`)
-Prominent "＋ New Sample" button opens modal. Step 1 pick category (only those in `profiles.allowed_categories`). Step 2 dynamic form per category:
-- Thumbnail / Skin / VFX-image → single image
-- Editing / VFX-video → video file
-- Model / Website / Plugin / Mod → zip + gallery (1+ images)
-- Server dev → server ID text (e.g. `bananasmp.fun`) + optional banner image
-Common: title, price, description. Uploads to `samples` bucket, submits pending.
+- **Ordering needs a designer target.** The order page only finds designers by typing an exact-ish username, and there are just 2 designer accounts. There is no browsable list, so the page looks empty and dead.
+- **You cannot order from or message yourself.** Testing with a single account makes both systems look broken.
+- **Chat attachments are hidden for you.** The paperclip/image buttons only appear for Exclusive-badge designers and Supreme creators, so on a normal account the chat looks like it has no upload feature.
+- **Failures are silent.** If an insert or upload fails, several handlers show nothing, so a click feels like "nothing happened".
 
-## 3. Designer application (`apply.tsx`)
-Multi-select category checkboxes + years-of-experience field. On admin approval: assign `designer` role, copy `categories` → `profiles.allowed_categories`, copy experience.
+## What I will change
 
-## 4. Public designer profile (`u.$username.tsx`)
-Rebuilt layout:
-- Banner + avatar, username, display name, tag chip + level badge
-- Actions row: **Follow** · **Message** (square icon) · **Place order**
-- Stats row: Rank/Level · Years experience · Completed orders
-- Live rating bar (avg of `sample_ratings` across their samples, realtime)
-- Approved samples grid below
-Follow toggles `follows` row → notification to designer.
+### Orders
+- Replace the blank designer search with a **designer picker list**: show all designers by default (avatar, name, tag, level), with search narrowing the list, plus a note when no designers exist yet.
+- Add a **"Place order" button on every designer profile and sample page** that lands directly on the pre-filled order form.
+- Surface every failure with a visible error message (order insert, file upload, delivery upload, payment submit) instead of failing silently.
+- Add clear status guidance on the order detail page so each side always sees what to do next (accept/reject → deliver → pay → approve).
+- Block self-ordering with an explicit message instead of a dead button.
 
-## 5. Messaging (`_authenticated/messages.tsx` + `messages.$userId.tsx`)
-Two entry points: TopBar "Messages" (thread list + search users) and "Message" button on profile (deep-link to thread). Realtime channel on `messages` filtered by recipient. Mark-read on view. Attachment optional (image).
+### Messaging
+- Show a **"Start a chat" list of recent users/designers** in the message box instead of an empty search field.
+- Keep the message button on profiles working, and show an explicit notice when trying to chat with yourself.
+- Always render the attachment buttons; for accounts without Exclusive/Supreme, show a locked state that explains the perk and links to the store (instead of hiding the feature entirely).
+- Show upload errors and enforce the 50MB limit with a readable message.
 
-## 6. Order flow
-- `orders.new.tsx`: step 1 search/pick designer, step 2 form (title, description, reference image optional, attachment optional, **budget min/max**, **deadline date**, category). Submit → notification to designer.
-- `orders.$id.tsx` state machine:
-  - `pending` — designer sees Accept / Reject
-  - `accepted` — designer uploads watermarked preview → status `delivered`
-  - `delivered` — customer sees watermarked preview + **Pay & Purchase** (mock) → status `paid`
-  - `paid` — customer downloads clean file (signed URL); order marked `completed`; designer `completed_orders += 1` and `+₹price` added to earnings shown on dashboard
-  - Auto-flag `expired=true` on read if `now() > deadline` and still pending
-- Notifications at every transition.
-
-## 7. Admin panel (`admin.tsx`)
-Add tabs: **Recent users** (last 20 signups w/ role + ban toggle, no search needed) and **Dashboard** (counts: users, designers, pending apps, pending samples, open orders, reports). Keep existing moderation tabs.
-
-## 8. Homepage (`index.tsx`)
-Replace "Apply as designer" bottom CTA with **Join our Discord** (link `#` for now). Add rows under Suggestions:
-- **Trending** — approved samples ordered by recent likes+ratings
-- **Most rated** — highest `avg_rating` (min 3 ratings)
-- **Most liked** — top `sample_likes` count
-- **Popular designers** — top by follower count
-- **Designer of the month** — top by completed orders in last 30 days
+### Verification
+After the changes I will run the full flow in a real browser session against the live app: place an order on a designer, accept it as the designer, upload the watermarked preview + final file + QR, pay as the customer, approve as the designer, and send a chat message with an attachment — then report exactly what worked.
 
 ## Technical notes
-- All new tables: GRANT to `authenticated` + `service_role`; RLS scoped to `auth.uid()`; realtime added where needed.
-- Signed URLs everywhere for private buckets (existing `SampleImage` pattern extended for video/zip download).
-- Gated uploads: dashboard filters category options by `profiles.allowed_categories`; server-side RLS also checks it on insert.
-- No seed data, no fake accounts — everything reads from real tables.
-- Watermark: designer-supplied preview file; we don't auto-generate.
-- Level derived client-side from `completed_orders`.
-
-## Out of scope for this pass
-- Real payments (mock only)
-- Auto-watermarking on server
-- Cron-based expiry (on-read only)
-- Email notifications
-
-Approve and I'll ship it in one build pass.
+- Files touched: `src/routes/_authenticated/orders.new.tsx`, `orders.tsx`, `orders.$id.tsx`, `messages.tsx`, `messages.$userId.tsx`, `src/routes/u.$username.tsx`, `src/routes/samples.$id.tsx`.
+- No database migration needed; access policies on `orders` and `messages` already allow the flows.
+- Designer discovery reads `user_roles` (role = designer) joined to `profiles`.
