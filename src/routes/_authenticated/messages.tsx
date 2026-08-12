@@ -81,19 +81,21 @@ function MessagesList() {
       <Card className="mb-6 p-4 glass">
         <p className="mb-2 text-xs text-muted-foreground">Start a new chat</p>
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by username..." />
-        {results.length > 0 && (
-          <div className="mt-3 space-y-1">
-            {results.map((p) => (
-              <Link key={p.id} to="/messages/$userId" params={{ userId: p.id }} className="flex items-center gap-3 rounded-md p-2 hover:bg-muted/40">
-                <UserAvatar src={p.avatar_url} gifSrc={p.gif_avatar_url} className="h-8 w-8" iconClassName="h-3 w-3" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm">{p.display_name || p.username}</p>
-                  <p className="truncate text-xs text-muted-foreground">@{p.username}{p.bio ? " · " + p.bio : ""}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <div className="mt-3 space-y-1">
+          {suggestions.length === 0 && (
+            <p className="py-4 text-center text-xs text-muted-foreground">No other users found yet.</p>
+          )}
+          {suggestions.slice(0, 12).map((p) => (
+            <Link key={p.id} to="/messages/$userId" params={{ userId: p.id }} className="flex items-center gap-3 rounded-md p-2 hover:bg-muted/40">
+              <UserAvatar src={p.avatar_url} gifSrc={p.gif_avatar_url} className="h-8 w-8" iconClassName="h-3 w-3" />
+              <div className="min-w-0">
+                <p className="truncate text-sm">{p.display_name || p.username}</p>
+                <p className="truncate text-xs text-muted-foreground">@{p.username}{p.bio ? " · " + p.bio : ""}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
       </Card>
 
       {threads.length === 0 ? (
