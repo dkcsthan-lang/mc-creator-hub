@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/mctech";
+import { UserAvatar } from "@/components/UserAvatar";
+
 
 export const Route = createFileRoute("/_authenticated/orders/new")({
   validateSearch: (s) => z.object({ designer: z.string().optional() }).parse(s),
