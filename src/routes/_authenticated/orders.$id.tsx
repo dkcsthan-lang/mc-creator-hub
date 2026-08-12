@@ -179,6 +179,13 @@ function OrderDetail() {
         </div>
         {order.reference_url && <p className="mt-3 text-sm">Reference: <a className="text-primary underline" href={order.reference_url} target="_blank" rel="noreferrer">link</a></p>}
 
+        <div className="mt-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+          <span className="font-semibold text-primary">Next step: </span>
+          {nextStep(order.status, isDesigner)}
+        </div>
+
+
+
         {order.status === "expired" && (
           <div className="mt-6 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">This order expired past its deadline.</div>
         )}
