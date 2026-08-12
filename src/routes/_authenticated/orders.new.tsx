@@ -58,6 +58,7 @@ function NewOrder() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !chosen) return toast.error("Pick a designer first.");
+    if (chosen.id === user.id) return toast.error("You can't place an order with yourself — pick another designer.");
     if (!form.deadline) return toast.error("Set a deadline.");
     if (form.budget_min > form.budget_max) return toast.error("Budget max must be ≥ min.");
     setBusy(true);
@@ -67,18 +68,19 @@ function NewOrder() {
       budget_min: form.budget_min, budget_max: form.budget_max,
       deadline: form.deadline || null,
     }).select("id").single();
-    if (error || !order) { setBusy(false); return toast.error(error?.message ?? "Failed"); }
+    if (error || !order) { setBusy(false); return toast.error(error?.message ?? "Could not create the order."); }
 
     const paths: string[] = [];
     for (const f of files) {
-      const path = `${order.id}/${Date.now()}-${f.name}`;
+      const path = `${order.id}/${Date.now()}-${f.name.replace(/[^\w.-]/g, "_")}`;
       const up = await supabase.storage.from("order-files").upload(path, f);
-      if (!up.error) paths.push(path);
+      if (up.error) toast.error(`Could not upload ${f.name}: ${up.error.message}`);
+      else paths.push(path);
     }
     if (paths.length) await supabase.from("orders").update({ attachment_paths: paths }).eq("id", order.id);
 
     setBusy(false);
-    toast.success("Order sent!");
+    toast.success("Order sent! The designer has been notified.");
     nav({ to: "/orders/$id", params: { id: order.id } });
   }
 
@@ -88,18 +90,28 @@ function NewOrder() {
 
       {!chosen ? (
         <Card className="p-4 glass">
-          <Label>Search a designer by username</Label>
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Type a username..." className="mt-2" />
+          <Label>Choose a designer</Label>
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or username..." className="mt-2" />
           <div className="mt-3 space-y-2">
-            {results.map((r) => (
-              <button key={r.id} onClick={() => setChosen(r)} className="flex w-full items-center justify-between rounded-md border border-border/60 bg-card/50 p-3 text-left hover:neon-glow">
-                <span>{r.display_name || r.username}</span>
-                <span className="text-xs text-muted-foreground">@{r.username}</span>
+            {visible.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                {results.length === 0 ? "No approved designers are available yet." : "No designer matches that search."}
+              </p>
+            )}
+            {visible.map((r) => (
+              <button key={r.id} onClick={() => setChosen(r)} className="flex w-full items-center gap-3 rounded-md border border-border/60 bg-card/50 p-3 text-left hover:neon-glow">
+                <UserAvatar src={r.avatar_url} className="h-9 w-9 shrink-0" iconClassName="h-4 w-4" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{r.display_name || r.username}</span>
+                  <span className="block truncate text-xs text-muted-foreground">@{r.username}</span>
+                </span>
+                <span className="shrink-0 text-xs text-primary">Select</span>
               </button>
             ))}
           </div>
         </Card>
       ) : (
+
         <Card className="p-6 glass">
           <div className="mb-4 flex items-center justify-between">
             <div>
