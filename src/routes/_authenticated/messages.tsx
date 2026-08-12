@@ -60,11 +60,19 @@ function MessagesList() {
     return () => { supabase.removeChannel(ch); };
   }, [user?.id]);
 
+  // Load a default list of people so the box is never empty.
   useEffect(() => {
-    if (!q.trim()) return setResults([]);
-    supabase.from("profiles").select("id,username,display_name,avatar_url,gif_avatar_url,bio").ilike("username", `%${q}%`).limit(10)
+    if (!user) return;
+    supabase.from("profiles").select("id,username,display_name,avatar_url,gif_avatar_url,bio").neq("id", user.id).limit(50)
       .then(({ data }) => setResults((data as Profile[]) ?? []));
-  }, [q]);
+  }, [user?.id]);
+
+  const suggestions = results.filter((p) => {
+    const t = q.trim().toLowerCase();
+    if (!t) return true;
+    return (p.username ?? "").toLowerCase().includes(t) || (p.display_name ?? "").toLowerCase().includes(t);
+  });
+
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
