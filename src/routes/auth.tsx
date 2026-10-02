@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -59,6 +59,23 @@ async function withRetry<T extends { error: unknown }>(run: () => Promise<T>, at
   return last as T;
 }
 
+/** Keeps the post-sign-in destination on this site and never back on /auth. */
+function safeRedirect(raw?: string): string {
+  if (!raw) return "/";
+  let path = raw;
+  try {
+    if (/^https?:/i.test(raw)) {
+      const u = new URL(raw);
+      if (typeof window !== "undefined" && u.origin !== window.location.origin) return "/";
+      path = u.pathname + u.search;
+    }
+  } catch {
+    return "/";
+  }
+  if (!path.startsWith("/") || path.startsWith("//") || path.startsWith("/auth")) return "/";
+  return path;
+}
+
 function AuthPage() {
   const nav = useNavigate();
   const search = useSearch({ from: "/auth" });
@@ -68,9 +85,16 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   function afterAuth() {
-    const to = search.redirect && search.redirect.startsWith("/") ? search.redirect : "/";
-    nav({ to: to as string });
+    nav({ to: safeRedirect(search.redirect) as string, replace: true });
   }
+
+  // Already signed in? Skip the form.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) afterAuth();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
