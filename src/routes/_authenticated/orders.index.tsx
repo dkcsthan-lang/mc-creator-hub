@@ -11,7 +11,7 @@ type Order = {
   customer_id: string; designer_id: string; created_at: string;
 };
 
-export const Route = createFileRoute("/_authenticated/orders")({
+export const Route = createFileRoute("/_authenticated/orders/")({
   head: () => ({ meta: [{ title: "Orders — OnlyCreators" }, { name: "description", content: "Your orders on OnlyCreators." }] }),
   component: OrdersList,
 });
