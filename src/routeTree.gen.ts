@@ -21,11 +21,11 @@ import { Route as CategoryCatRouteImport } from './routes/category.$cat'
 import { Route as AuthenticatedThanksRouteImport } from './routes/_authenticated/thanks'
 import { Route as AuthenticatedStoreRouteImport } from './routes/_authenticated/store'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
-import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
+import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedOrdersNewRouteImport } from './routes/_authenticated/orders.new'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
 import { Route as AuthenticatedMessagesUserIdRouteImport } from './routes/_authenticated/messages.$userId'
@@ -90,22 +90,12 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -116,21 +106,33 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOrdersIndexRoute =
+  AuthenticatedOrdersIndexRouteImport.update({
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMessagesIndexRoute =
+  AuthenticatedMessagesIndexRouteImport.update({
+    id: '/messages/',
+    path: '/messages/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOrdersNewRoute = AuthenticatedOrdersNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AuthenticatedOrdersRoute,
+  id: '/orders/new',
+  path: '/orders/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedOrdersRoute,
+  id: '/orders/$id',
+  path: '/orders/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMessagesUserIdRoute =
   AuthenticatedMessagesUserIdRouteImport.update({
-    id: '/$userId',
-    path: '/$userId',
-    getParentRoute: () => AuthenticatedMessagesRoute,
+    id: '/messages/$userId',
+    path: '/messages/$userId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPayKindIdRoute = AuthenticatedPayKindIdRouteImport.update({
   id: '/pay/$kind/$id',
@@ -146,9 +148,7 @@ export interface FileRoutesByFullPath {
   '/sponsor': typeof SponsorRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/store': typeof AuthenticatedStoreRoute
   '/thanks': typeof AuthenticatedThanksRoute
@@ -158,6 +158,8 @@ export interface FileRoutesByFullPath {
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/orders/': typeof AuthenticatedOrdersIndexRoute
   '/pay/$kind/$id': typeof AuthenticatedPayKindIdRoute
 }
 export interface FileRoutesByTo {
@@ -168,9 +170,7 @@ export interface FileRoutesByTo {
   '/sponsor': typeof SponsorRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
-  '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/store': typeof AuthenticatedStoreRoute
   '/thanks': typeof AuthenticatedThanksRoute
@@ -180,6 +180,8 @@ export interface FileRoutesByTo {
   '/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/messages': typeof AuthenticatedMessagesIndexRoute
+  '/orders': typeof AuthenticatedOrdersIndexRoute
   '/pay/$kind/$id': typeof AuthenticatedPayKindIdRoute
 }
 export interface FileRoutesById {
@@ -192,9 +194,7 @@ export interface FileRoutesById {
   '/sponsor': typeof SponsorRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
-  '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/store': typeof AuthenticatedStoreRoute
   '/_authenticated/thanks': typeof AuthenticatedThanksRoute
@@ -204,6 +204,8 @@ export interface FileRoutesById {
   '/_authenticated/messages/$userId': typeof AuthenticatedMessagesUserIdRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
   '/_authenticated/pay/$kind/$id': typeof AuthenticatedPayKindIdRoute
 }
 export interface FileRouteTypes {
@@ -216,9 +218,7 @@ export interface FileRouteTypes {
     | '/sponsor'
     | '/admin'
     | '/dashboard'
-    | '/messages'
     | '/notifications'
-    | '/orders'
     | '/profile'
     | '/store'
     | '/thanks'
@@ -228,6 +228,8 @@ export interface FileRouteTypes {
     | '/messages/$userId'
     | '/orders/$id'
     | '/orders/new'
+    | '/messages/'
+    | '/orders/'
     | '/pay/$kind/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -238,9 +240,7 @@ export interface FileRouteTypes {
     | '/sponsor'
     | '/admin'
     | '/dashboard'
-    | '/messages'
     | '/notifications'
-    | '/orders'
     | '/profile'
     | '/store'
     | '/thanks'
@@ -250,6 +250,8 @@ export interface FileRouteTypes {
     | '/messages/$userId'
     | '/orders/$id'
     | '/orders/new'
+    | '/messages'
+    | '/orders'
     | '/pay/$kind/$id'
   id:
     | '__root__'
@@ -261,9 +263,7 @@ export interface FileRouteTypes {
     | '/sponsor'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
-    | '/_authenticated/messages'
     | '/_authenticated/notifications'
-    | '/_authenticated/orders'
     | '/_authenticated/profile'
     | '/_authenticated/store'
     | '/_authenticated/thanks'
@@ -273,6 +273,8 @@ export interface FileRouteTypes {
     | '/_authenticated/messages/$userId'
     | '/_authenticated/orders/$id'
     | '/_authenticated/orders/new'
+    | '/_authenticated/messages/'
+    | '/_authenticated/orders/'
     | '/_authenticated/pay/$kind/$id'
   fileRoutesById: FileRoutesById
 }
@@ -374,25 +376,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/orders': {
-      id: '/_authenticated/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof AuthenticatedOrdersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/notifications': {
       id: '/_authenticated/notifications'
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/messages': {
-      id: '/_authenticated/messages'
-      path: '/messages'
-      fullPath: '/messages'
-      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -409,26 +397,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/orders/': {
+      id: '/_authenticated/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof AuthenticatedOrdersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/messages/': {
+      id: '/_authenticated/messages/'
+      path: '/messages'
+      fullPath: '/messages/'
+      preLoaderRoute: typeof AuthenticatedMessagesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/orders/new': {
       id: '/_authenticated/orders/new'
-      path: '/new'
+      path: '/orders/new'
       fullPath: '/orders/new'
       preLoaderRoute: typeof AuthenticatedOrdersNewRouteImport
-      parentRoute: typeof AuthenticatedOrdersRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/orders/$id': {
       id: '/_authenticated/orders/$id'
-      path: '/$id'
+      path: '/orders/$id'
       fullPath: '/orders/$id'
       preLoaderRoute: typeof AuthenticatedOrdersIdRouteImport
-      parentRoute: typeof AuthenticatedOrdersRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/messages/$userId': {
       id: '/_authenticated/messages/$userId'
-      path: '/$userId'
+      path: '/messages/$userId'
       fullPath: '/messages/$userId'
       preLoaderRoute: typeof AuthenticatedMessagesUserIdRouteImport
-      parentRoute: typeof AuthenticatedMessagesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pay/$kind/$id': {
       id: '/_authenticated/pay/$kind/$id'
@@ -440,53 +442,33 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedMessagesRouteChildren {
-  AuthenticatedMessagesUserIdRoute: typeof AuthenticatedMessagesUserIdRoute
-}
-
-const AuthenticatedMessagesRouteChildren: AuthenticatedMessagesRouteChildren = {
-  AuthenticatedMessagesUserIdRoute: AuthenticatedMessagesUserIdRoute,
-}
-
-const AuthenticatedMessagesRouteWithChildren =
-  AuthenticatedMessagesRoute._addFileChildren(
-    AuthenticatedMessagesRouteChildren,
-  )
-
-interface AuthenticatedOrdersRouteChildren {
-  AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
-  AuthenticatedOrdersNewRoute: typeof AuthenticatedOrdersNewRoute
-}
-
-const AuthenticatedOrdersRouteChildren: AuthenticatedOrdersRouteChildren = {
-  AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
-  AuthenticatedOrdersNewRoute: AuthenticatedOrdersNewRoute,
-}
-
-const AuthenticatedOrdersRouteWithChildren =
-  AuthenticatedOrdersRoute._addFileChildren(AuthenticatedOrdersRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
-  AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedStoreRoute: typeof AuthenticatedStoreRoute
   AuthenticatedThanksRoute: typeof AuthenticatedThanksRoute
+  AuthenticatedMessagesUserIdRoute: typeof AuthenticatedMessagesUserIdRoute
+  AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
+  AuthenticatedOrdersNewRoute: typeof AuthenticatedOrdersNewRoute
+  AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
+  AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
   AuthenticatedPayKindIdRoute: typeof AuthenticatedPayKindIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedMessagesRoute: AuthenticatedMessagesRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
-  AuthenticatedOrdersRoute: AuthenticatedOrdersRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedStoreRoute: AuthenticatedStoreRoute,
   AuthenticatedThanksRoute: AuthenticatedThanksRoute,
+  AuthenticatedMessagesUserIdRoute: AuthenticatedMessagesUserIdRoute,
+  AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
+  AuthenticatedOrdersNewRoute: AuthenticatedOrdersNewRoute,
+  AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
+  AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
   AuthenticatedPayKindIdRoute: AuthenticatedPayKindIdRoute,
 }
 
